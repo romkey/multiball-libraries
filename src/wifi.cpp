@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "wifi_local.h"
+#include "multiball/wifi.h"
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>

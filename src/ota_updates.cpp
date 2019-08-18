@@ -1,7 +1,7 @@
 #include "config.h"
 
-#include "ota_updates.h"
-#include "wifi_local.h"
+#include "multiball/ota_updates.h"
+#include "multiball/wifi.h"
 
 void ota_updates_setup() {
   const char* hostname = wifi_hostname();

@@ -9,7 +9,9 @@
 
 #ifdef USE_MQTT
 
-#include "wifi_local.h"
+#include "multiball/wifi.h"
+
+// this stuff is here for the callback and should be moved out
 #include "presets.h"
 #include "animations.h"
 #include "leds.h"
