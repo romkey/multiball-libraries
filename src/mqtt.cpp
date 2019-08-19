@@ -1,10 +1,3 @@
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#else
-#include <Esp.h>
-#include <WiFi.h>
-#endif
-
 #include "config.h"
 
 #ifdef USE_MQTT
