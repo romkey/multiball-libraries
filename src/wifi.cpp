@@ -10,7 +10,6 @@
 #include <WiFiMulti.h>
 #endif
 
-
 static char hostname[sizeof("discoball-%02x%02x%02x") + 1];
 
 #ifdef ESP8266
@@ -25,7 +24,7 @@ int wifi_failures = 0;
 RTC_DATA_ATTR int wifi_failures = 0;
 #endif
 
-bool wifi_begin() {
+bool wifi_begin(char **wifi_credentials, unsigned count) {
   byte mac_address[6];
 
   WiFi.macAddress(mac_address);
@@ -44,9 +43,12 @@ bool wifi_begin() {
   WiFi.setHostname(hostname);
 #endif
 
-  wifiMulti.addAP(WIFI_SSID1, WIFI_PASSWORD1);
-  wifiMulti.addAP(WIFI_SSID2, WIFI_PASSWORD2);
-  wifiMulti.addAP(WIFI_SSID3, WIFI_PASSWORD3);
+  for(unsigned i = 0; i < count; i++) {
+    Serial.println(wifi_credentials[i*2]);
+    Serial.println(wifi_credentials[i*2]+1);
+    delay(500);
+    wifiMulti.addAP(wifi_credentials[i*2], wifi_credentials[i*2+1]);
+  }
 
   static int wifi_tries = 0;
   while(wifiMulti.run() != WL_CONNECTED) {
@@ -58,6 +60,11 @@ bool wifi_begin() {
       ESP.restart();
     }
   }
+}
+
+void wifi_handle() {
+  if(WiFi.status() != WL_CONNECTED)
+    wifiMulti.run();
 }
 
 const char* wifi_hostname() {
