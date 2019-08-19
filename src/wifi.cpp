@@ -24,7 +24,7 @@ int wifi_failures = 0;
 RTC_DATA_ATTR int wifi_failures = 0;
 #endif
 
-bool wifi_begin(char **wifi_credentials, unsigned count) {
+bool wifi_begin(const char **wifi_credentials, unsigned count) {
   byte mac_address[6];
 
   WiFi.macAddress(mac_address);
@@ -43,12 +43,8 @@ bool wifi_begin(char **wifi_credentials, unsigned count) {
   WiFi.setHostname(hostname);
 #endif
 
-  for(unsigned i = 0; i < count; i++) {
-    Serial.println(wifi_credentials[i*2]);
-    Serial.println(wifi_credentials[i*2]+1);
-    delay(500);
+  for(unsigned i = 0; i < count; i++)
     wifiMulti.addAP(wifi_credentials[i*2], wifi_credentials[i*2+1]);
-  }
 
   static int wifi_tries = 0;
   while(wifiMulti.run() != WL_CONNECTED) {
@@ -60,6 +56,8 @@ bool wifi_begin(char **wifi_credentials, unsigned count) {
       ESP.restart();
     }
   }
+
+  return true;
 }
 
 void wifi_handle() {
