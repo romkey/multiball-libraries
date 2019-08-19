@@ -9,6 +9,6 @@
 #include <ESPmDNS.h>
 #endif
 
-bool wifi_setup(char **wifi_credentials, unsigned count);
+bool wifi_begin(char **wifi_credentials, unsigned count);
 void wifi_handle();
 const char* wifi_hostname();
