@@ -12,4 +12,5 @@ void mqtt_setup(const char* hostname, uint16_t port, const char* uuid, const cha
 void mqtt_handle();
 void mqtt_callback(const char*, const byte*, unsigned);
 void mqtt_publish(const char* topic, const char* payload, bool retain = false);
+bool mqtt_is_connected();
 #endif
