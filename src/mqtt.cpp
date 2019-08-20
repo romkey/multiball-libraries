@@ -1,7 +1,3 @@
-#include "config.h"
-
-#ifdef USE_MQTT
-
 #include "multiball/wifi.h"
 
 // this stuff is here for the callback and should be moved out
@@ -21,7 +17,7 @@ bool mqtt_connect() {
   if(mqtt_client.connected())
     return false;
 
-  mqtt_client.connect(MQTT_UUID, MQTT_USER, MQTT_PASS);
+  mqtt_client.connect(uuid, username, password);
   mqtt_client.subscribe(MQTT_CMD_TOPIC);
 
   mqtt_client.publish("/status", "\"hello world\"");
@@ -29,8 +25,8 @@ bool mqtt_connect() {
   return true;
 }
 
-void mqtt_setup() {
-  mqtt_client.setServer(MQTT_HOST, MQTT_PORT);
+void mqtt_setup(const char* hostname, uint16_t port, const char* uuid, const char* username, const char* password) {
+  mqtt_client.setServer(hostname, port);
   mqtt_client.setCallback(mqtt_callback);
   mqtt_connect();
 }
@@ -138,5 +134,3 @@ void mqtt_callback(const char* topic, const byte* payload, unsigned int length) 
     return;
   }
 }
-
-#endif
