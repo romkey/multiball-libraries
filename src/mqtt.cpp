@@ -1,10 +1,5 @@
 #include "multiball/wifi.h"
-
-// this stuff is here for the callback and should be moved out
-#include "presets.h"
-#include "animations.h"
-#include "leds.h"
-#include "mqtt.h"
+#include "multiball/mqtt.h"
 
 #ifdef HAS_BME280
 #include "bme280.h"
