@@ -1,3 +1,5 @@
+#ifdef MULTIBALL_INDICATOR_RGB
+
 #include "multiball/indicator.h"
 #include "multiball/mqtt.h"
 
@@ -92,3 +94,4 @@ void indicator_callback() {
   indicator_on = true;
   indicator_handle();
 }
+#endif
