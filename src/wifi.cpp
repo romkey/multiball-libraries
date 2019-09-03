@@ -30,9 +30,9 @@ bool wifi_begin(const char **wifi_credentials, unsigned count, const char* hostn
   WiFi.macAddress(mac_address);
 
   unsigned hostname_length = strlen(hostname_prefix) + sizeof("-%02x%02x%02x") + 1;
-  hostname = malloc(hostname_length);
+  hostname = (char*)malloc(hostname_length);
 
-  snprintf(hostname, hostname-length, "%s-%02x%02x%02x", hostname_prefix, (int)mac_address[3], (int)mac_address[4], (int)mac_address[5]);
+  snprintf(hostname, hostname_length, "%s-%02x%02x%02x", hostname_prefix, (int)mac_address[3], (int)mac_address[4], (int)mac_address[5]);
   Serial.printf("Hostname: %s\n", hostname);
   Serial.printf("MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n",
 		mac_address[0],
