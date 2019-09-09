@@ -70,7 +70,7 @@ void mqtt_publish(const char* topic, const char* payload, bool retain) {
   mqtt_client.publish(topic, payload, retain);
 }
 
-void homebus_mqtt_callback(const char*, const char*);
+void homebus_mqtt_callback(const char*, char*);
 
 void mqtt_callback(const char* topic, const byte* payload, unsigned int length) {
   char command_buffer[length + 1];
