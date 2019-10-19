@@ -24,7 +24,7 @@ int wifi_failures = 0;
 RTC_DATA_ATTR int wifi_failures = 0;
 #endif
 
-bool wifi_begin(const char **wifi_credentials, unsigned count, const char* hostname_prefix) {
+bool wifi_begin(const  wifi_credential_t* wifi_credentials, unsigned count, const char* hostname_prefix) {
   byte mac_address[6];
 
   WiFi.macAddress(mac_address);
@@ -48,7 +48,7 @@ bool wifi_begin(const char **wifi_credentials, unsigned count, const char* hostn
 #endif
 
   for(unsigned i = 0; i < count; i++)
-    wifiMulti.addAP(wifi_credentials[i*2], wifi_credentials[i*2+1]);
+    wifiMulti.addAP(wifi_credentials[i].ssid, wifi_credentials[i].password);
 
   static int wifi_tries = 0;
   while(wifiMulti.run() != WL_CONNECTED) {

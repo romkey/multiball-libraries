@@ -9,6 +9,11 @@
 #include <ESPmDNS.h>
 #endif
 
-bool wifi_begin(const char **wifi_credentials, unsigned count, const char* hostname_prefix = "multiball-host");
+typedef struct {
+  const char* ssid;
+  const char* password;
+} wifi_credential_t;
+
+bool wifi_begin(const wifi_credential_t *credentials, unsigned count, const char* hostname_prefix = "multiball-host");
 void wifi_handle();
 const char* wifi_hostname();
