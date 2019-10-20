@@ -7,16 +7,10 @@
 #include <multiball/ota_updates.h>
 #include <multiball/mqtt.h>
 
-#ifdef BUILD_INFO
 
 // CPP weirdness to turn a bare token into a string
 #define STRINGIZE_NX(A) #A
 #define STRINGIZE(A) STRINGIZE_NX(A)
-
-char build_info[] = STRINGIZE(BUILD_INFO);
-#else
-char build_info[] = "not set";
-#endif
 
 // used to store persistent data across crashes/reboots
 // cleared when power cycled or re-flashed
@@ -39,7 +33,12 @@ void MultiballApp::wifi_credentials(uint8_t count, const wifi_credential_t *cred
 void MultiballApp::begin(const char* app_name) {
   Serial.begin(115200);
   Serial.println("Hello World!");
-  Serial.printf("Build %s\n", build_info);
+
+#ifdef BUILD_INFO
+  _build_info = String(STRINGIZE(BUILD_INFO));
+#endif
+
+  Serial.printf("Build %s\n", _build_info);
 
   if(!SPIFFS.begin(true))
     Serial.println("An Error has occurred while mounting SPIFFS");
@@ -86,3 +85,12 @@ void MultiballApp::handle() {
 #endif
 }
 
+unsigned MultiballApp::boot_count() {
+  return bootCount;
+}
+
+extern unsigned wifi_failures;
+
+unsigned MultiballApp::wifi_failures() {
+  return 0;
+}

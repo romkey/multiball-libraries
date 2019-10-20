@@ -26,6 +26,11 @@ public:
   boolean status_changed() { return _status_changed; };
 
   String mac_address() { return _mac_address; };
+  String ip_address() { return _ip_address; };
+
+  String build_info() { return _build_info; };
+  unsigned wifi_failures();
+  unsigned boot_count();
 
   AppConfig config;
 
@@ -40,6 +45,8 @@ private:
   String _mac_address;
   String _ip_address;
   String _hostname;
+  String _build_info;
+
   volatile boolean _status_changed = false;
 
   wifi_credential_t *_wifi_credentials;
