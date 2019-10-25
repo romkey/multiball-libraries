@@ -28,6 +28,9 @@ public:
   String mac_address() { return _mac_address; };
   String ip_address() { return _ip_address; };
 
+  void hostname(String hostname) { _hostname = hostname; };
+  String hostname() { return _hostname; };
+
   String build_info() { return _build_info; };
   unsigned wifi_failures();
   unsigned boot_count();

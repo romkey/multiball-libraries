@@ -1,3 +1,6 @@
+#include <vector>
+
+#include "multiball/app.h"
 #include "multiball/wifi.h"
 #include "multiball/mqtt.h"
 
@@ -6,7 +9,11 @@
 static WiFiClient wifi_mqtt_client;
 static PubSubClient mqtt_client(wifi_mqtt_client);
 
-static char *hostname, *uuid, *username, *password, *subscription = NULL;
+static char *hostname, *uuid, *username, *password;
+static uint16_t port = 1883;
+
+static std::vector<char*> subscriptions;
+
 
 bool mqtt_connect();
 void mqtt_callback(const char* topic, const byte* payload, unsigned int length);
@@ -30,11 +37,11 @@ void mqtt_setup(const char* req_hostname, uint16_t port, const char* req_uuid, c
 }
 
 void mqtt_subscribe(const char* topic) {
-  if(subscription)
-    free(subscription);
+  char* subscription;
 
   subscription = (char*)malloc(strlen(topic) + 1);
   strcpy(subscription, topic);
+  subscriptions.push_back(subscription);
   mqtt_client.subscribe(subscription);
 }
 
@@ -43,8 +50,8 @@ bool mqtt_connect() {
     return false;
 
   mqtt_client.connect(uuid, username, password);
-  if(subscription)
-    mqtt_client.subscribe(subscription);
+  for(auto item = subscriptions.cbegin(); item != subscriptions.cend(); item++)
+    mqtt_client.subscribe(*item);
 
   return true;
 }
@@ -79,4 +86,32 @@ void mqtt_callback(const char* topic, const byte* payload, unsigned int length) 
   command_buffer[length] = '\0';
 
   homebus_mqtt_callback(topic, command_buffer);
+}
+
+void mqtt_persist() {
+  App.config.set("mqtt", "hostname", hostname);
+  App.config.set("mqtt", "username", username);
+  App.config.set("mqtt", "password", password);
+  App.config.set("mqtt", "port", String(port));
+}
+
+boolean mqtt_restore() {
+  boolean success = false;
+  String results;
+
+  results = App.config.get("mqtt", "hostname", &success);
+  if(success)
+    strcpy(hostname, results.c_str());
+
+  results = App.config.get("mqtt", "username", &success);
+  if(success)
+    strcpy(username, results.c_str());
+
+  results = App.config.get("mqtt", "password", &success);
+  if(success)
+    strcpy(password, results.c_str());
+
+  results = App.config.get("mqtt", "port", &success);
+  if(success)
+    port = results.toInt();
 }

@@ -7,7 +7,7 @@
 
 class AppConfig {
 public:
-  AppConfig(const char* path = "/conifg/") : _path(path) {};
+  AppConfig(const char* path = "/config/") : _path(path) {};
 
   boolean set(const char* key, const char* subkey, String value);
   String get(const char* key, const char* subkey, boolean *success = NULL);
