@@ -1,5 +1,10 @@
 #include <Arduino.h>
+
+#ifdef ESP32
 #include <SPIFFS.h>
+#else
+#include <FS.h>
+#endif
 
 #include <multiball/app.h>
 
@@ -38,15 +43,15 @@ void MultiballApp::begin(const char* app_name) {
   _build_info = String(STRINGIZE(BUILD_INFO));
 #endif
 
-  Serial.printf("Build %s\n", _build_info);
+  Serial.printf("Build %s\n", _build_info.c_str());
 
-  if(!SPIFFS.begin(true))
+  if(!SPIFFS.begin())
     Serial.println("An Error has occurred while mounting SPIFFS");
   else
     Serial.println("[spiffs]");
 
   if(wifi_begin(_wifi_credentials, 3, app_name)) {
-    _ip_address = String(WiFi.localIP());
+    _ip_address = String(WiFi.localIP()[0]) + "." + String(WiFi.localIP()[1]) + "." + String(WiFi.localIP()[2]) + "." + String(WiFi.localIP()[3]);
     Serial.println(WiFi.localIP());
     Serial.println("[wifi]");
 
