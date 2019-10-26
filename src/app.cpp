@@ -2,8 +2,15 @@
 
 #ifdef ESP32
 #include <SPIFFS.h>
+
+#include "esp_system.h"
 #else
 #include <FS.h>
+
+extern "C" {
+#include <user_interface.h>
+};
+
 #endif
 
 #include <multiball/app.h>
@@ -11,8 +18,6 @@
 #include <multiball/wifi.h>
 #include <multiball/ota_updates.h>
 #include <multiball/mqtt.h>
-
-#include "esp_system.h"
 
 // CPP weirdness to turn a bare token into a string
 #define STRINGIZE_NX(A) #A
@@ -55,7 +60,14 @@ void MultiballApp::begin(const char* app_name) {
   byte mac_address[6];
   char mac_address_str[3 * 6];
 
+#ifdef ESP32
   esp_read_mac(mac_address, ESP_MAC_WIFI_STA);
+#endif
+
+#ifdef ESP8266
+  wifi_get_macaddr(STATION_IF, mac_address);
+#endif
+
   snprintf(mac_address_str, 3*6, "%02x:%02x:%02x:%02x:%02x:%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
   _mac_address = String(mac_address_str);
 
