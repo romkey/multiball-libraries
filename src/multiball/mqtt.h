@@ -14,3 +14,6 @@ void mqtt_subscribe(const char* topic);
 
 void mqtt_publish(const char* topic, const char* payload, bool retain = false);
 bool mqtt_is_connected();
+
+void mqtt_persist();
+boolean mqtt_restore();
