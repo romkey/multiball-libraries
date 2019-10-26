@@ -14,7 +14,7 @@ public:
 
   unsigned long uptime() { return millis() - _boot_time; };
 
-  void reboot();
+  void reboot() { ESP.restart(); };
   void factory_reset();
 
   void serial_speed(unsigned speed) { _serial_speed = speed; };
@@ -28,7 +28,7 @@ public:
   String mac_address() { return _mac_address; };
   String ip_address() { return _ip_address; };
 
-  void hostname(String hostname) { _hostname = hostname; };
+  void hostname(String hostname) { _hostname = hostname; _default_hostname = false; };
   String hostname() { return _hostname; };
 
   String build_info() { return _build_info; };
@@ -40,14 +40,19 @@ public:
   void updates_available(boolean status) { _updates_available = status; };
   boolean updates_available() { return _updates_available; };
 
+  void persist();
+  void restore();
+
 private:
   unsigned _serial_speed = 115200;
 
   boolean _updates_available = false;
 
+  boolean _default_hostname = true;
+  String _hostname;
+
   String _mac_address;
   String _ip_address;
-  String _hostname;
   String _build_info;
 
   volatile boolean _status_changed = false;

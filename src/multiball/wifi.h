@@ -16,4 +16,3 @@ typedef struct {
 
 bool wifi_begin(const wifi_credential_t *credentials, unsigned count, const char* hostname_prefix = "multiball-host");
 void wifi_handle();
-const char* wifi_hostname();

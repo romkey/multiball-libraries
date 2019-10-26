@@ -1,12 +1,11 @@
 #include "config.h"
 
+#include "multiball/app.h"
 #include "multiball/ota_updates.h"
 #include "multiball/wifi.h"
 
 void ota_updates_setup() {
-  const char* hostname = wifi_hostname();
-
-  ArduinoOTA.setHostname(hostname);
+  ArduinoOTA.setHostname(App.hostname().c_str());
 #ifndef ESP8266
   ArduinoOTA.onStart([]() {
       String type;

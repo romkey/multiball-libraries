@@ -1,5 +1,8 @@
 #include <multiball/appconfig.h>
 
+#include <SPIFFS.h>
+#include <FS.h>
+
 boolean AppConfig::set(const char* key, const char* subkey, String value) {
   File f = SPIFFS.open(_config_filename(key, subkey), FILE_WRITE);
   if(f) {
@@ -12,7 +15,7 @@ boolean AppConfig::set(const char* key, const char* subkey, String value) {
 }
 
 String AppConfig::_config_filename(const char* key, const char* subkey) {
-  if(subkey == "")
+  if(strlen(subkey) == 0)
     return _path + key;
   else
     return _path + key + "_" + subkey;
@@ -29,11 +32,17 @@ String AppConfig::_read_line_from_file(File file) {
 }
 
 String AppConfig::get(const char* key, const char* subkey, boolean *success) {
-  File file = SPIFFS.open(_config_filename(key, subkey), FILE_READ);
-  if(file) {
-    *success = true;
-    return String(_read_line_from_file(file));
+  String path = _config_filename(key, subkey);
+
+  File file = SPIFFS.open(path);
+  if(!file || file.isDirectory()){
+    *success = false;
+    return String("");
   }
+
+  *success = true;
+  String s = _read_line_from_file(file);
+  return s;
 }
 
 void AppConfig::clear(const char* key, const char* subkey) {

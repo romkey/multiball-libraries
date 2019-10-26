@@ -34,6 +34,8 @@ void mqtt_setup(const char* req_hostname, uint16_t port, const char* req_uuid, c
   mqtt_client.setServer(hostname, port);
   mqtt_client.setCallback(mqtt_callback);
   mqtt_connect();
+
+  mqtt_persist();
 }
 
 void mqtt_subscribe(const char* topic) {
