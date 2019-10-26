@@ -1,8 +1,5 @@
 #include <multiball/appconfig.h>
 
-#include <SPIFFS.h>
-#include <FS.h>
-
 boolean AppConfig::set(const char* key, const char* subkey, String value) {
   File f = SPIFFS.open(_config_filename(key, subkey), FILE_WRITE);
   if(f) {
