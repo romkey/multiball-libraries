@@ -2,8 +2,15 @@
 
 #include <Arduino.h>
 
+#ifdef ESP32
 #include <SPIFFS.h>
 #include <FS.h>
+#else
+#include <FS.h>
+
+#define FILE_READ "r"
+#define FILE_WRITE "w"
+#endif
 
 class AppConfig {
 public:
