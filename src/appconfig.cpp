@@ -31,7 +31,7 @@ String AppConfig::_read_line_from_file(File file) {
 String AppConfig::get(const char* key, const char* subkey, boolean *success) {
   String path = _config_filename(key, subkey);
 
-  File file = SPIFFS.open(path.c_str());
+  File file = SPIFFS.open(path.c_str(), FILE_READ);
   if(!file || file.isDirectory()){
     *success = false;
     return String("");
