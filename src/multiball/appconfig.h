@@ -5,6 +5,8 @@
 #ifdef ESP32
 #include <SPIFFS.h>
 #include <FS.h>
+
+#include <Preferences.h>
 #else
 #include <FS.h>
 
@@ -14,17 +16,33 @@
 
 class AppConfig {
 public:
-  AppConfig(const char* path = "/config/") : _path(path) {};
+  void begin(const char* app_name);
 
-  boolean set(const char* key, const char* subkey, String value);
-  String get(const char* key, const char* subkey, boolean *success = NULL);
-  void clear(const char* key, const char* subkey);
+  boolean set(const char* key, String value);
+  String get(const char* key, boolean *success = NULL);
+  boolean exists(const char* key);
+  void clear(const char* key);
 
-  void migrate();
+#ifdef ESP32
+  String getv1(const char* key, boolean *success = NULL);
+  void clearv1(const char* key);
+#endif
 
 private:
-  String _config_filename(const char* key, const char* subkey);
-  static String _read_line_from_file(File fs);
+#ifdef ESP32
+  boolean _initialized = false;
+  uint32_t _handle;
 
-  String _path;
+  String _config_filename(const char* key);
+  static String _read_line_from_file(File fs);
+  String _path = "/config/";
+#endif
+
+#ifdef ESP8266
+  String _path = "/config/";
+
+  String _config_filename(const char* key);
+  static String _read_line_from_file(File fs);
+#endif
+
 };

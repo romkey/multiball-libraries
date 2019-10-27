@@ -50,6 +50,8 @@ void MultiballApp::begin(const char* app_name) {
   Serial.printf("Build %s\n", _build_info.c_str());
 #endif
 
+  config.begin(app_name);
+
   if(!SPIFFS.begin())
     Serial.println("An Error has occurred while mounting SPIFFS");
   else
@@ -121,14 +123,14 @@ unsigned MultiballApp::wifi_failures() {
 
 void MultiballApp::persist() {
   if(!_default_hostname)
-    config.set("app", "hostname", _hostname);
+    config.set("app-hostname", _hostname);
 }
 
 void MultiballApp::restore() {
   boolean success = false;
   String configured_hostname;
 
-  configured_hostname = config.get("app", "hostname", &success);
+  configured_hostname = config.get("app-hostname", &success);
   if(success) {
     _default_hostname = false;
     _hostname = configured_hostname;

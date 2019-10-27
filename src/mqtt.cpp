@@ -91,29 +91,29 @@ void mqtt_callback(const char* topic, const byte* payload, unsigned int length) 
 }
 
 void mqtt_persist() {
-  App.config.set("mqtt", "hostname", hostname);
-  App.config.set("mqtt", "username", username);
-  App.config.set("mqtt", "password", password);
-  App.config.set("mqtt", "port", String(port));
+  App.config.set("mqtt-hostname", hostname);
+  App.config.set("mqtt-username", username);
+  App.config.set("mqtt-password", password);
+  App.config.set("mqtt-port", String(port));
 }
 
 boolean mqtt_restore() {
   boolean success = false;
   String results;
 
-  results = App.config.get("mqtt", "hostname", &success);
+  results = App.config.get("mqtt-hostname", &success);
   if(success)
     strcpy(hostname, results.c_str());
 
-  results = App.config.get("mqtt", "username", &success);
+  results = App.config.get("mqtt-username", &success);
   if(success)
     strcpy(username, results.c_str());
 
-  results = App.config.get("mqtt", "password", &success);
+  results = App.config.get("mqtt-password", &success);
   if(success)
     strcpy(password, results.c_str());
 
-  results = App.config.get("mqtt", "port", &success);
+  results = App.config.get("mqtt-port", &success);
   if(success)
     port = results.toInt();
 }
