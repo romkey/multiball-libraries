@@ -14,10 +14,10 @@
     },
     "frameworks": "arduino",
     "platforms": ["espressif8266", "espressif32"],
-    "version": "0.0.3",
+    "version": "0.0.4",
     "dependencies": [
 	{
-	    "name": "async-mqtt-client",
+	    "name": "AsyncMqttClient",
 	    "version": "^0.8.1",
 	    "platforms": ["espressif8266", "espressif32"]
 	},
