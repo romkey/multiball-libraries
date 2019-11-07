@@ -20,6 +20,11 @@
 	    "name": "async-mqtt-client",
 	    "version": "^0.8.1",
 	    "platforms": ["espressif8266", "espressif32"]
+	},
+	{
+	    "name": "ArduinoJSON",
+	    "version": "^6.13.0",
+	    "platforms": ["espressif8266", "espressif32"]
 	}
     ]
 }
