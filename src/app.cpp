@@ -18,6 +18,7 @@ extern "C" {
 #include <multiball/wifi.h>
 #include <multiball/ota_updates.h>
 #include <multiball/mqtt.h>
+#include <multiball/homebus.h>
 
 // CPP weirdness to turn a bare token into a string
 #define STRINGIZE_NX(A) #A
@@ -95,20 +96,12 @@ void MultiballApp::begin(const char* app_name) {
   ota_updates_setup();
   Serial.println("[ota_updates]");
 
-#ifdef USE_MQTT
-  mqtt_setup(MQTT_HOST, MQTT_PORT, MQTT_UUID, MQTT_USER, MQTT_PASS);
-  Serial.println("[mqtt]");
-#endif
 }
 
 void MultiballApp::handle() {
   wifi_handle();
   ota_updates_handle();
-
-#ifdef USE_MQTT
-  mqtt_handle();
-  homebus_mqtt_handle();
-#endif
+  homebus_handle();
 }
 
 unsigned MultiballApp::boot_count() {

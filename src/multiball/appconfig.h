@@ -5,8 +5,6 @@
 #ifdef ESP32
 #include <SPIFFS.h>
 #include <FS.h>
-
-#include <Preferences.h>
 #else
 #include <FS.h>
 
