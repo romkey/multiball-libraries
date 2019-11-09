@@ -23,6 +23,7 @@ void homebus_receive(const char* topic, char *msg, size_t length);
 void homebus_system(JsonObject system);
 
 void homebus_publish(const char* msg);
+void homebus_publish_to(const char* topic, const char* msg);
 
 String homebus_uuid();
 
@@ -30,3 +31,8 @@ void homebus_callback(const char* topic, const char* msg);
 
 // friendly name, friendly location, manufacturer, model
 void homebus_configure(const char*, const char*, const char*, const char*);
+
+const char* homebus_mqtt_host();
+const char* homebus_mqtt_username();
+const char* homebus_mqtt_uuid();
+uint16_t homebus_mqtt_port();

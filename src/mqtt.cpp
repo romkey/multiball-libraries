@@ -106,7 +106,9 @@ void mqtt_subscribe(const char* topic) {
   subscription = (char*)malloc(strlen(topic) + 1);
   strcpy(subscription, topic);
   subscriptions.push_back(subscription);
-  mqtt_client.subscribe(subscription, 0);
+
+  if(mqtt_client.connected())
+    mqtt_client.subscribe(subscription, 0);
 }
 
 void mqtt_connect() {
@@ -132,5 +134,5 @@ void mqtt_callback(const char* topic, const byte* payload, unsigned int length) 
   memcpy(command_buffer, payload, length);
   command_buffer[length] = '\0';
 
-  homebus_callback(topic, command_buffer);
+  homebus_mqtt_callback(topic, command_buffer);
 }

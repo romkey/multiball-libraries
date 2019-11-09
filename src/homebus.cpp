@@ -9,6 +9,22 @@ static String UUID;
 static String mqtt_username, mqtt_password, mqtt_broker;
 static uint16_t mqtt_port = 0;
 
+const char* homebus_mqtt_uuid() {
+  return UUID.c_str();
+}
+
+const char* homebus_mqtt_username() {
+  return mqtt_username.c_str();
+}
+
+const char* homebus_mqtt_host() {
+  return mqtt_broker.c_str();
+}
+
+uint16_t homebus_mqtt_port() {
+  return mqtt_port;
+}
+
 static String homebus_endpoint;
 static String homebus_cmd_endpoint;
 static boolean provisioned = false;
@@ -42,11 +58,15 @@ String homebus_uuid() {
   return UUID;
 }
 
+void homebus_mqtt_setup() {
+  mqtt_setup(mqtt_broker, mqtt_port, mqtt_username, mqtt_password);
+  mqtt_subscribe((homebus_endpoint + "/#").c_str());
+}
+
 void homebus_setup() {
   homebus_restore();
 
   if(homebus_state == HOMEBUS_STATE_OKAY) {
-    mqtt_setup(mqtt_broker, mqtt_port, mqtt_username, mqtt_password);
     return;
   }
 
@@ -70,6 +90,7 @@ void homebus_handle() {
   }
 }
 
+// labels must be 15 characters or fewer, so use "hb-" as a prefix, not "homebus-"
 void homebus_persist() {
   App.config.set("hb-state", String(homebus_state));
   App.config.set("hb-uuid", UUID.c_str());
@@ -305,7 +326,7 @@ void homebus_process_response(String payload) {
     mqtt_port = doc["mqtt_port"];
 
     homebus_state = HOMEBUS_STATE_OKAY;
-    mqtt_setup(mqtt_broker, mqtt_port, mqtt_username, mqtt_password);
+    homebus_mqtt_setup();
   }
     
   homebus_persist();
@@ -315,6 +336,10 @@ void homebus_publish(const char *msg) {
   mqtt_publish(homebus_endpoint.c_str(), msg, true);
 }
 
-void homebus_callback(const char* topic, const char* msg) {
+void homebus_publish_to(const char *topic, const char *msg) {
+  mqtt_publish(("/homebus/device/" + UUID + "/" + topic).c_str(), msg, true);
+}
+
+void homebus_mqtt_callback(const char* topic, const char* msg) {
 
 }
