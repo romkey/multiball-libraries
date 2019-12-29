@@ -258,6 +258,66 @@ void homebus_system(JsonObject system) {
   system["wifi_failures"] = App.wifi_failures();
 }
 
+/*
+   from https://arduinojson.org/v6/assistant/
+
+   {
+     "status": "retry",
+     "retry_time": 60
+     }
+
+   {
+     "status": "success",
+     "url": "http://some-long-name.homebus.io:80",
+     "server": "some-long-name.homebus.io",
+     "port": 80,
+     "secure": false
+     }
+
+*/
+static void homebus_process_discover(String payload) {
+  const size_t capacity = JSON_OBJECT_SIZE(5) + 110;
+  StaticJsonDocument<capacity> doc;
+
+  deserializeJson(doc, payload);
+
+  if(strcmp(doc["status"], "retry") == 0) {
+    discover_retry_time = doc["retry_time"];
+    return;
+  }
+
+  if(strcmp(doc["status"] != "success")
+     return;
+
+  const char* url = doc["url"]; // "http://some-long-name.homebus.io:80"
+  const char* server = doc["server"]; // "some-long-name.homebus.io"
+  int port = doc["port"]; // 80
+  bool secure = doc["secure"]; // false
+}
+
+
+static void homebus_discover() {
+  HTTPClient http;
+
+  http.begin("http://discover.homebus.io/discover");
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Accept", "application/json");
+  
+  int httpCode = http.POST();
+  if(httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
+    String payload = http.getString();
+    Serial.println("OKAY!");
+    Serial.println(payload);
+
+    homebus_process_discover(payload);
+  } else {
+    Serial.print("httpCode is ");
+    Serial.println(httpCode);
+  }
+
+  http.end();
+}
+
 static void homebus_provision() {
   char buf[1024];
   HTTPClient http;
