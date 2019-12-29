@@ -4,4 +4,4 @@ This library contains code that's used in several hardware projects - the [furba
 
 See also the [Multiball Sensor]() library, which contains highly uniform and modular sensor code that is also reused among projects.
 
-Unless you're working with one of the "ball" projects you almost certainly don't want to use this library.
+Unless you're working with one of the "ball" projects you almost certainly don't want to use this library. It's designed to accomodate the specific needs of these projects and not for general use.
