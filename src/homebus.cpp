@@ -33,6 +33,7 @@ static homebus_state_t homebus_state = HOMEBUS_STATE_NOT_SETUP;
 
 static unsigned long homebus_next_provision_retry = 0;
 static unsigned homebus_provision_retry_time = 60;
+static unsigned discover_retry_time = 60;
 
 static void homebus_provision();
 static void homebus_provision_request(char*buf, size_t);
@@ -286,7 +287,7 @@ static void homebus_process_discover(String payload) {
     return;
   }
 
-  if(strcmp(doc["status"] != "success")
+  if(strcmp(doc["status"], "success") == 0)
      return;
 
   const char* url = doc["url"]; // "http://some-long-name.homebus.io:80"
@@ -303,7 +304,7 @@ static void homebus_discover() {
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Accept", "application/json");
   
-  int httpCode = http.POST();
+  int httpCode = http.POST("");
   if(httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
     String payload = http.getString();
     Serial.println("OKAY!");
@@ -324,8 +325,8 @@ static void homebus_provision() {
 
   homebus_provision_request(buf, 1024);
 
-  //  http.begin("http://hipster.homebus.io/provision");
-  http.begin("http://ctrlh.homebus.io:5678/provision");
+  http.begin("http://hipster.homebus.io/provision");
+  //  http.begin("http://ctrlh.homebus.io:5678/provision");
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Accept", "application/json");
   
