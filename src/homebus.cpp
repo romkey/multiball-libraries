@@ -9,7 +9,7 @@ static String UUID;
 static String mqtt_username, mqtt_password, mqtt_broker;
 static uint16_t mqtt_port = 0;
 
-const char* homebus_mqtt_uuid() {
+const char* homebus_uuid() {
   return UUID.c_str();
 }
 
@@ -51,8 +51,8 @@ void homebus_configure(const char* friendly_name, const char* friendly_location,
 
 void homebus_uuid(String new_uuid) {
   UUID = new_uuid;
-  homebus_endpoint = "/homebus/device/" + UUID;
-  homebus_cmd_endpoint = "/homebus/device/" + UUID + "/cmd";
+  homebus_endpoint = "homebus/device/" + UUID;
+  homebus_cmd_endpoint = "homebus/device/" + UUID + "/cmd";
 }
 
 String homebus_uuid() {
@@ -398,7 +398,7 @@ void homebus_publish(const char *msg) {
 }
 
 void homebus_publish_to(const char *topic, const char *msg) {
-  mqtt_publish(("/homebus/device/" + UUID + "/" + topic).c_str(), msg, true);
+  mqtt_publish(("homebus/device/" + UUID + "/" + topic).c_str(), msg, true);
 }
 
 void homebus_mqtt_callback(const char* topic, const char* msg) {
