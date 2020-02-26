@@ -55,10 +55,6 @@ void homebus_uuid(String new_uuid) {
   homebus_cmd_endpoint = "homebus/device/" + UUID + "/cmd";
 }
 
-String homebus_uuid() {
-  return UUID;
-}
-
 void homebus_mqtt_setup() {
   mqtt_setup(mqtt_broker, mqtt_port, mqtt_username, mqtt_password);
   mqtt_subscribe((homebus_endpoint + "/#").c_str());
@@ -89,6 +85,22 @@ void homebus_handle() {
       homebus_provision();
     }
   }
+}
+
+/*
+ * temporary function for transition to new libraries
+ */
+void homebus_stuff(const char* broker, uint16_t port, const char* username, const char* password, const char* uuid) {
+  mqtt_broker = String(broker);
+  mqtt_port = port;
+  mqtt_username = String(username);
+  mqtt_password = String(password);
+  UUID = String(uuid);
+  homebus_state = HOMEBUS_STATE_OKAY;
+
+  Serial.println("about to persist STUFF");
+  delay(500);
+  homebus_persist();
 }
 
 // labels must be 15 characters or fewer, so use "hb-" as a prefix, not "homebus-"

@@ -35,3 +35,9 @@ const char* homebus_uuid();
 const char* homebus_mqtt_host();
 const char* homebus_mqtt_username();
 uint16_t homebus_mqtt_port();
+
+/*
+ * temporary function for transition to new libraries
+ */
+void homebus_stuff(const char* broker, uint16_t port, const char* username, const char* password, const char* uuid);
+void homebus_mqtt_setup();
