@@ -2,8 +2,16 @@
 #include <multiball/homebus.h>
 #include <multiball/mqtt.h>
 
+#ifdef ESP32
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
+#endif
+
+#ifdef ESP8266
+#include <ESP8266mDNS.h>
+#include <ESP8266HTTPClient.h>
+#endif
+
 
 static String UUID;
 static String mqtt_username, mqtt_password, mqtt_broker;
@@ -67,9 +75,11 @@ void homebus_setup() {
     return;
   }
 
+#ifdef ESP32
   IPAddress homebus_ip = MDNS.queryHost("homebus.local");
   Serial.print("homebus IP is ");
   Serial.println(homebus_ip);
+#endif
 
   if(!provisioned) {
     homebus_state = HOMEBUS_STATE_PROVISIONING;
@@ -406,11 +416,13 @@ void homebus_process_response(String payload) {
 }
 
 void homebus_publish(const char *msg) {
-  mqtt_publish(homebus_endpoint.c_str(), msg, true);
+  if(homebus_state == HOMEBUS_STATE_OKAY)
+    mqtt_publish(homebus_endpoint.c_str(), msg, true);
 }
 
 void homebus_publish_to(const char *topic, const char *msg) {
-  mqtt_publish(("homebus/device/" + UUID + "/" + topic).c_str(), msg, true);
+  if(homebus_state == HOMEBUS_STATE_OKAY)
+    mqtt_publish(("homebus/device/" + UUID + "/" + topic).c_str(), msg, true);
 }
 
 void homebus_mqtt_callback(const char* topic, const char* msg) {

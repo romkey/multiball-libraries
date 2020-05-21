@@ -4,14 +4,20 @@
 #include <SPIFFS.h>
 
 #include "esp_system.h"
-#else
+#endif
+
+#ifdef ESP8266
+#include <LittleFS.h>
 #include <FS.h>
 
 extern "C" {
 #include <user_interface.h>
 };
-
+#define SPIFFS LittleFS
 #endif
+
+
+
 
 #include <multiball/app.h>
 

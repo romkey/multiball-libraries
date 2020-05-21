@@ -4,6 +4,10 @@
 
 #endif
 
+#ifdef ESP8266
+#include <LittleFS.h>
+#endif
+
 #include <multiball/appconfig.h>
 
 #ifdef ESP32
@@ -67,8 +71,13 @@ boolean AppConfig::exists(const char* key) {
 #endif
 
 #ifdef ESP8266
+void AppConfig::begin(const char* app_name) {
+  LittleFS.format();
+  LittleFS.begin();
+}
+
 boolean AppConfig::set(const char* key, String value) {
-  File f = SPIFFS.open(_config_filename(key, subkey), FILE_WRITE);
+  File f = LittleFS.open(_config_filename(key), FILE_WRITE);
   if(f) {
     f.println(value);
     f.close();
@@ -78,11 +87,8 @@ boolean AppConfig::set(const char* key, String value) {
   return false;
 }
 
-String AppConfig::_config_filename(const char* key, const char* subkey) {
-  if(strlen(subkey) == 0)
-    return _path + key;
-  else
-    return _path + key + "_" + subkey;
+String AppConfig::_config_filename(const char* key) {
+  return _path + key;
 }
 
 String AppConfig::_read_line_from_file(File file) {
@@ -96,9 +102,9 @@ String AppConfig::_read_line_from_file(File file) {
 }
 
 String AppConfig::get(const char* key, boolean *success) {
-  String path = _config_filename(key, subkey);
+  String path = _config_filename(key);
 
-  File file = SPIFFS.open(path.c_str(), FILE_READ);
+  File file = LittleFS.open(path.c_str(), FILE_READ);
   if(!file || file.isDirectory()){
     *success = false;
     return String("");
@@ -109,7 +115,7 @@ String AppConfig::get(const char* key, boolean *success) {
   return s;
 }
 
-void AppConfig::clear(const char* key, const char* subkey) {
-  SPIFFS.remove(_config_filename(key, subkey));
+void AppConfig::clear(const char* key) {
+  LittleFS.remove(_config_filename(key));
 }
 #endif
