@@ -72,6 +72,8 @@ void homebus_setup() {
   homebus_restore();
 
   if(homebus_state == HOMEBUS_STATE_OKAY) {
+    homebus_mqtt_setup();
+    mqtt_connect();
     return;
   }
 
