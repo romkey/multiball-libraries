@@ -7,6 +7,7 @@
 void mqtt_setup(String hostname, uint16_t port, String username, String password);
 void mqtt_handle();
 void mqtt_subscribe(const char* topic);
+void mqtt_connect();
 
 //void mqtt_callback(const char*, const byte*, unsigned);
 
