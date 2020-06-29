@@ -16,9 +16,6 @@ extern "C" {
 #define SPIFFS LittleFS
 #endif
 
-
-
-
 #include <multiball/app.h>
 
 #include <multiball/wifi.h>
@@ -59,11 +56,6 @@ void MultiballApp::begin(const char* app_name) {
 
   config.begin(app_name);
 
-  if(!SPIFFS.begin())
-    Serial.println("An Error has occurred while mounting SPIFFS");
-  else
-    Serial.println("[spiffs]");
-
   uint8_t hostname_len = strlen(app_name) + 1 + 6 + 1;
   char hostname[hostname_len];
   byte mac_address[6];
@@ -99,9 +91,21 @@ void MultiballApp::begin(const char* app_name) {
     Serial.println("wifi failure");
   }
 
+#define GMT_OFFSET_SECS  -8 * 60 * 60
+#define DAYLIGHT_SAVINGS_OFFSET_SECS 3600
+  configTime(GMT_OFFSET_SECS, DAYLIGHT_SAVINGS_OFFSET_SECS, "pool.ntp.org");
+
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+
+  Serial.println("[ntp]");
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+
   ota_updates_setup();
   Serial.println("[ota_updates]");
-
 }
 
 void MultiballApp::handle() {
