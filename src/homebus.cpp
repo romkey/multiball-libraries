@@ -422,9 +422,27 @@ void homebus_publish(const char *msg) {
     mqtt_publish(homebus_endpoint.c_str(), msg, true);
 }
 
-void homebus_publish_to(const char *topic, const char *msg) {
-  if(homebus_state == HOMEBUS_STATE_OKAY)
-    mqtt_publish(("homebus/device/" + UUID + "/" + topic).c_str(), msg, true);
+#define HOMEBUS_ENVELOPE "{ \"source\": \"%s\", \"timestamp\": %lu, \"contents\": { \"ddc\": \"%s\", \"payload\": %s } }"
+#define SIZEOF_UUID sizeof("UUUUUUUU-WWWW-XXXX-YYYY-ZZZZZZZZZZZZ")
+#define SIZEOF_TIMESTRING sizeof("2148336000")
+
+void homebus_send_to(const char *uuid, const char *ddc, const char *msg) {
+  size_t buf_len = sizeof(HOMEBUS_ENVELOPE) + SIZEOF_UUID + strlen(ddc) + strlen(msg) + 1;
+  size_t topic_len = sizeof("homebus/device//") + SIZEOF_UUID + strlen(ddc) + 1;
+
+  char buf[buf_len];
+  char topic[topic_len];
+
+  if(homebus_state == HOMEBUS_STATE_OKAY) {
+    snprintf(topic, topic_len, "homebus/device/%s/%s", uuid, ddc);
+    snprintf(buf, buf_len, HOMEBUS_ENVELOPE, UUID.c_str(), time(NULL), ddc, msg);
+
+    mqtt_publish(topic, buf, true);
+  }
+}
+
+void homebus_publish_to(const char *ddc, const char *msg) {
+  homebus_send_to(UUID.c_str(), ddc, msg);
 }
 
 void homebus_mqtt_callback(const char* topic, const char* msg) {

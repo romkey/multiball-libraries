@@ -1,7 +1,7 @@
 {
     "name": "multiball-libraries",
     "keywords": "homebus, iot, esp32, esp8266, arduino, sensors",
-    "description": "Library functions that support firmware for furball, discoball, and other related open source hardware. Not meant for general use; don't use unless you specifically need this library.",
+    "description": "Library functions that support firmware for furball, discoball, dirtball and other related open source hardware. Not meant for general use; don't use unless you specifically need this library.",
     "authors":
     {
 	"name": "John Romkey",
@@ -15,11 +15,11 @@
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": ["espressif8266", "espressif32"],
-    "version": "0.1.5",
+    "version": "0.2.0",
     "dependencies": [
 	{
 	    "name": "AsyncMqttClient",
-	    "version": "^0.8.1",
+	    "version": "https://github.com/romkey/async-mqtt-client",
 	    "platforms": ["espressif8266", "espressif32"]
 	},
 	{

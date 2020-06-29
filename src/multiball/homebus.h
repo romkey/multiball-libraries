@@ -24,6 +24,7 @@ void homebus_system(JsonObject system);
 
 void homebus_publish(const char* msg);
 void homebus_publish_to(const char* topic, const char* msg);
+void homebus_send_to(const char *uuid, const char *ddc, const char *msg);
 
 void homebus_callback(const char* topic, const char* msg);
 
