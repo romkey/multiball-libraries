@@ -60,7 +60,7 @@ void homebus_configure(const char* friendly_name, const char* friendly_location,
 void homebus_uuid(String new_uuid) {
   UUID = new_uuid;
   homebus_endpoint = "homebus/device/" + UUID;
-  homebus_cmd_endpoint = "homebus/device/" + UUID + "/cmd";
+  homebus_cmd_endpoint = "homebus/device/" + UUID + "/org.homebus.experimental.command";
 }
 
 void homebus_mqtt_setup() {

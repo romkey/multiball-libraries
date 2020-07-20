@@ -111,10 +111,10 @@ void MultiballApp::begin(const char* app_name) {
 #ifdef ESP8266
   time_t now;
   time(&now);
-  localtime_r(&now, &tminfo);
+  localtime_r(&now, &timeinfo);
 
   Serial.println("[ntp]");
-  Serial.printf("\nNow is : %d-%02d-%02d %02d:%02d:%02d\n", (tminfo.tm_year) + 1900, (tminfo.tm_mon) + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+  Serial.printf("\nNow is : %d-%02d-%02d %02d:%02d:%02d\n", (timeinfo.tm_year) + 1900, (timeinfo.tm_mon) + 1, timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 #endif
 
   ota_updates_setup();
