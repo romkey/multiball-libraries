@@ -14,6 +14,8 @@ extern "C" {
 #include <user_interface.h>
 };
 #define SPIFFS LittleFS
+
+#include <time.h>
 #endif
 
 #include <multiball/app.h>
@@ -72,7 +74,7 @@ void MultiballApp::begin(const char* app_name) {
   snprintf(mac_address_str, 3*6, "%02x:%02x:%02x:%02x:%02x:%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
   _mac_address = String(mac_address_str);
 
-  snprintf(hostname, hostname_len, "%s-%02x%02x%02x", app_name, mac_address[0], mac_address[1], mac_address[2]);
+  snprintf(hostname, hostname_len, "%s-%02x%02x%02x", app_name, mac_address[3], mac_address[4], mac_address[5]);
   _hostname = String(hostname);
   _default_hostname = true;
 
@@ -93,9 +95,10 @@ void MultiballApp::begin(const char* app_name) {
 
 #define GMT_OFFSET_SECS  -8 * 60 * 60
 #define DAYLIGHT_SAVINGS_OFFSET_SECS 3600
-  configTime(GMT_OFFSET_SECS, DAYLIGHT_SAVINGS_OFFSET_SECS, "pool.ntp.org");
-
+  configTime(GMT_OFFSET_SECS, DAYLIGHT_SAVINGS_OFFSET_SECS, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
   struct tm timeinfo;
+
+#ifdef ESP32
   if(!getLocalTime(&timeinfo)){
     Serial.println("Failed to obtain time");
     return;
@@ -103,6 +106,16 @@ void MultiballApp::begin(const char* app_name) {
 
   Serial.println("[ntp]");
   Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+#endif
+
+#ifdef ESP8266
+  time_t now;
+  time(&now);
+  localtime_r(&now, &tminfo);
+
+  Serial.println("[ntp]");
+  Serial.printf("\nNow is : %d-%02d-%02d %02d:%02d:%02d\n", (tminfo.tm_year) + 1900, (tminfo.tm_mon) + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+#endif
 
   ota_updates_setup();
   Serial.println("[ota_updates]");

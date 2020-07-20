@@ -65,7 +65,7 @@ void homebus_uuid(String new_uuid) {
 
 void homebus_mqtt_setup() {
   mqtt_setup(mqtt_broker, mqtt_port, mqtt_username, mqtt_password);
-  mqtt_subscribe((homebus_endpoint + "/#").c_str());
+  mqtt_subscribe((homebus_endpoint + "/cmd").c_str());
 }
 
 void homebus_setup() {
