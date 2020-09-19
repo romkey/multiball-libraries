@@ -72,14 +72,16 @@ boolean AppConfig::exists(const char* key) {
 
 #ifdef ESP8266
 void AppConfig::begin(const char* app_name) {
-  LittleFS.format();
+  //  LittleFS.format();
   LittleFS.begin();
 }
 
 boolean AppConfig::set(const char* key, String value) {
+  Serial.printf("AppConfig::set(%s, %s)\n", key, value.c_str());
+
   File f = LittleFS.open(_config_filename(key), FILE_WRITE);
   if(f) {
-    f.println(value);
+    f.print(value);
     f.close();
     return true;
   }
@@ -88,30 +90,45 @@ boolean AppConfig::set(const char* key, String value) {
 }
 
 String AppConfig::_config_filename(const char* key) {
+  Serial.print("AppConfig::_config_filename ");
+  Serial.println(_path + key);
+
   return _path + key;
 }
 
-String AppConfig::_read_line_from_file(File file) {
-  static char buffer[32];
+String AppConfig::_read_line_from_file(File file, char *buffer, size_t buflen) {
+  int i = 0;
+  memset(buffer, 0, buflen);
+
   while(file.available()) {
-    int length = file.readBytesUntil('\n', buffer, sizeof(buffer));
-    buffer[length > 0 ? length - 1 : 0] =  '\0';
+    buffer[i++] = file.read();
+    if(i == buflen - 1)
+      break;
   }
 
-  return buffer;
+  return String(buffer);
 }
 
 String AppConfig::get(const char* key, boolean *success) {
   String path = _config_filename(key);
 
   File file = LittleFS.open(path.c_str(), FILE_READ);
+  Serial.printf("AppConfig::get file is %u bytes long\n", file.size());
+  file.seek(0, SeekSet);
+
   if(!file || file.isDirectory()){
+    Serial.println("AppConfig::get -> null");
+
     *success = false;
     return String("");
   }
 
+  char buf[50];
+
   *success = true;
-  String s = _read_line_from_file(file);
+  String s = _read_line_from_file(file, buf, 50);
+
+  Serial.printf("AppConfig::get(%s) -> %s\n", key, s.c_str());
   return s;
 }
 

@@ -42,3 +42,4 @@ uint16_t homebus_mqtt_port();
  */
 void homebus_stuff(const char* broker, uint16_t port, const char* username, const char* password, const char* uuid);
 void homebus_mqtt_setup();
+void homebus_mqtt_override_prefix(const char* prefix);

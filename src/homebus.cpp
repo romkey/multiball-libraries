@@ -12,7 +12,6 @@
 #include <ESP8266HTTPClient.h>
 #endif
 
-
 static String UUID;
 static String mqtt_username, mqtt_password, mqtt_broker;
 static uint16_t mqtt_port = 0;
@@ -33,6 +32,7 @@ uint16_t homebus_mqtt_port() {
   return mqtt_port;
 }
 
+static boolean override_prefix = false;
 static String homebus_endpoint;
 static String homebus_cmd_endpoint;
 static boolean provisioned = false;
@@ -57,10 +57,18 @@ void homebus_configure(const char* friendly_name, const char* friendly_location,
   _model = model;
 }
 
+void homebus_mqtt_override_prefix(const char* prefix) {
+  homebus_endpoint = prefix;
+  override_prefix = true;
+}
+
 void homebus_uuid(String new_uuid) {
   UUID = new_uuid;
-  homebus_endpoint = "homebus/device/" + UUID;
-  homebus_cmd_endpoint = "homebus/device/" + UUID + "/org.homebus.experimental.command";
+
+  if(!override_prefix) {
+    homebus_endpoint = "homebus/device/" + UUID;
+    homebus_cmd_endpoint = "homebus/device/" + UUID + "/org.homebus.experimental.command";
+  }
 }
 
 void homebus_mqtt_setup() {

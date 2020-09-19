@@ -40,7 +40,7 @@ private:
   String _path = "/config/";
 
   String _config_filename(const char* key);
-  static String _read_line_from_file(File fs);
+  static String _read_line_from_file(File fs, char*, size_t);
 #endif
 
 };
