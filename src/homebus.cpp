@@ -33,6 +33,7 @@ uint16_t homebus_mqtt_port() {
 }
 
 static boolean override_prefix = false;
+static boolean use_envelope = true;
 static String homebus_endpoint;
 static String homebus_cmd_endpoint;
 static boolean provisioned = false;
@@ -60,6 +61,10 @@ void homebus_configure(const char* friendly_name, const char* friendly_location,
 void homebus_mqtt_override_prefix(const char* prefix) {
   homebus_endpoint = prefix;
   override_prefix = true;
+}
+
+void homebus_use_envelope(boolean flag) {
+  use_envelope = flag;
 }
 
 void homebus_uuid(String new_uuid) {
@@ -442,8 +447,13 @@ void homebus_send_to(const char *uuid, const char *ddc, const char *msg) {
   char topic[topic_len];
 
   if(homebus_state == HOMEBUS_STATE_OKAY) {
+    
     snprintf(topic, topic_len, "homebus/device/%s/%s", uuid, ddc);
-    snprintf(buf, buf_len, HOMEBUS_ENVELOPE, UUID.c_str(), time(NULL), ddc, msg);
+    if(use_envelope) {
+      snprintf(buf, buf_len, HOMEBUS_ENVELOPE, UUID.c_str(), time(NULL), ddc, msg);
+    } else {
+      
+    }
 
     mqtt_publish(topic, buf, true);
   }
