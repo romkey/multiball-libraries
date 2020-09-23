@@ -15,7 +15,7 @@
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": ["espressif8266", "espressif32"],
-    "version": "0.3.3",
+    "version": "0.3.4",
     "dependencies": [
 	{
 	    "name": "AsyncMqttClient",
