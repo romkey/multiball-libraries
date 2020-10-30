@@ -74,6 +74,9 @@ void MultiballApp::begin(const char* app_name) {
   snprintf(mac_address_str, 3*6, "%02x:%02x:%02x:%02x:%02x:%02x", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
   _mac_address = String(mac_address_str);
 
+  Serial.println(mac_address_str);
+  Serial.println(_mac_address);
+
   snprintf(hostname, hostname_len, "%s-%02x%02x%02x", app_name, mac_address[3], mac_address[4], mac_address[5]);
   _hostname = String(hostname);
   _default_hostname = true;

@@ -17,30 +17,30 @@ void homebus_handle();
 
 void homebus_persist();
 void homebus_restore();
+void homebus_reset();
 
-void homebus_receive(const char* topic, char *msg, size_t length);
+void homebus_receive(const char *topic, char *msg, size_t length);
 
 void homebus_system(JsonObject system);
 
-void homebus_publish(const char* msg);
-void homebus_publish_to(const char* topic, const char* msg);
+void homebus_publish(const char *msg);
+void homebus_publish_to(const char *topic, const char *msg);
 void homebus_send_to(const char *uuid, const char *ddc, const char *msg);
 
-void homebus_callback(const char* topic, const char* msg);
+void homebus_callback(const char *topic, const char *msg);
 
-// friendly name, friendly location, manufacturer, model
-void homebus_configure(const char*, const char*, const char*, const char*);
+void homebus_configure(const char *manufacturer, const char *model, const char *serial_number, const char *pin, const char *write_only_ddcs[], const char *read_only_ddcs[]);
+void homebus_set_provisioner(const char *server, const char *auth_token);
 
-const char* homebus_uuid();
+const char *homebus_uuid();
 
-const char* homebus_mqtt_host();
-const char* homebus_mqtt_username();
+const char *homebus_mqtt_host();
+const char *homebus_mqtt_username();
 uint16_t homebus_mqtt_port();
 
 /*
  * temporary function for transition to new libraries
  */
-void homebus_stuff(const char* broker, uint16_t port, const char* username, const char* password, const char* uuid);
+void homebus_stuff(const char *broker, uint16_t port, const char *username, const char *password, const char *uuid);
 void homebus_mqtt_setup();
-void homebus_mqtt_override_prefix(const char* prefix);
-void homebus_use_envelope(boolean use_envelope);
+void homebus_mqtt_override_prefix(const char *prefix);

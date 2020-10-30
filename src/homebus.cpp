@@ -13,18 +13,21 @@
 #endif
 
 static String UUID;
+static String refresh_token;
 static String mqtt_username, mqtt_password, mqtt_broker;
 static uint16_t mqtt_port = 0;
 
-const char* homebus_uuid() {
+static String homebus_server;
+
+const char *homebus_uuid() {
   return UUID.c_str();
 }
 
-const char* homebus_mqtt_username() {
+const char *homebus_mqtt_username() {
   return mqtt_username.c_str();
 }
 
-const char* homebus_mqtt_host() {
+const char *homebus_mqtt_host() {
   return mqtt_broker.c_str();
 }
 
@@ -42,23 +45,39 @@ static homebus_state_t homebus_state = HOMEBUS_STATE_NOT_SETUP;
 
 static unsigned long homebus_next_provision_retry = 0;
 static unsigned homebus_provision_retry_time = 60;
+#if 0
 static unsigned discover_retry_time = 60;
+#endif
 
 static void homebus_provision();
 static void homebus_provision_request(char*buf, size_t);
 static void homebus_process_response(String payload);
 
-static const char* _friendly_name = "", *_friendly_location = "", *_manufacturer = "", *_model = "";
+static const char *_manufacturer = "";
+static const char *_model = "";
+static const char *_serial_number = "";
+static const char *_pin = "";
+static const char **_wo_ddcs, **_ro_ddcs;
+
+static String _homebus_server, _homebus_auth_token;
 
 // friendly name, friendly location, manufacturer, model, update_frequency
-void homebus_configure(const char* friendly_name, const char* friendly_location, const char* manufacturer, const char* model) {
-  _friendly_name = friendly_name;
-  _friendly_location = friendly_location;
+void homebus_configure(const char *manufacturer, const char *model, const char *serial_number, const char *pin, const char *write_only_ddcs[], const char *read_only_ddcs[]) {
   _manufacturer = manufacturer;
   _model = model;
+  _serial_number = serial_number;
+  _pin = pin;
+
+  _wo_ddcs = write_only_ddcs;
+  _ro_ddcs = read_only_ddcs;
 }
 
-void homebus_mqtt_override_prefix(const char* prefix) {
+void homebus_set_provisioner(const char *server, const char *auth_token) {
+  _homebus_server = String(server);
+  _homebus_auth_token = String(auth_token);
+}
+
+void homebus_mqtt_override_prefix(const char *prefix) {
   homebus_endpoint = prefix;
   override_prefix = true;
 }
@@ -115,7 +134,7 @@ void homebus_handle() {
 /*
  * temporary function for transition to new libraries
  */
-void homebus_stuff(const char* broker, uint16_t port, const char* username, const char* password, const char* uuid) {
+void homebus_stuff(const char *broker, uint16_t port, const char *username, const char *password, const char *uuid) {
   mqtt_broker = String(broker);
   mqtt_port = port;
   mqtt_username = String(username);
@@ -132,11 +151,23 @@ void homebus_stuff(const char* broker, uint16_t port, const char* username, cons
 void homebus_persist() {
   App.config.set("hb-state", String(homebus_state));
   App.config.set("hb-uuid", UUID.c_str());
+  App.config.set("hb-refresh-token", refresh_token.c_str());
   App.config.set("hb-broker", mqtt_broker.c_str());
   App.config.set("hb-username", mqtt_username.c_str());
   App.config.set("hb-password", mqtt_password.c_str());
   App.config.set("hb-port", String(mqtt_port).c_str());
 }
+
+void homebus_reset() {
+  App.config.clear("hb-state");
+  App.config.clear("hb-uuid");
+  App.config.clear("hb-refresh-token");
+  App.config.clear("hb-broker");
+  App.config.clear("hb-username");
+  App.config.clear("hb-password");
+  App.config.clear("hb-port");
+}
+
 
 void homebus_restore() {
   boolean success;
@@ -151,6 +182,12 @@ void homebus_restore() {
     homebus_uuid(temp);
   else
     Serial.println("UUID fail");
+
+  temp = App.config.get("hb-refresh-token", &success);
+  if(success)
+    refresh_token = temp;
+  else
+    Serial.println("Refresh token fail");
 
   temp = App.config.get("hb-broker", &success);
   if(success)
@@ -194,84 +231,61 @@ void homebus_restore() {
 /*
  * generate C++ code at https://arduinojson.org/v6/assistant/
  *
- * {
- *     "friendly_name": "LED strip",
- *     "friendly_location": "Hipster Hideaway",
- *     "manufacturer": "HomeBus",
- *     "model": "v0",
- *     "serial_number": "7",
- *     "pin": "",
- *     "devices": [
- *       { "friendly_name": "LED strip",
- *         "friendly_location": "",
- *         "update_frequency": 0,
- *         "index": 0,
- *         "accuracy": 0,
- *         "precision": 0,
- *         "wo_topics": [ ],
- *         "ro_topics": [ "preset", "animation", "animation_speed", "brightness", "maximum_brightness" ],
- *         "rw_topics": []
- *       },
- *       { "friendly_name": "temperature",
- *         "friendly_location": "",
- *         "update_frequency": 60,
- *         "index": 0,
- *         "accuracy": 0,
- *         "precision": 0,
- *         "wo_topics": [ "temperature", "humidity", "pressure" ],
- *         "ro_topics": [ ],
- *         "rw_topics": []
- *       }
- *    ]
- *  }
+ *
+
+     "identity": {
+        "manufacturer": "HomeBus",
+        "model": "v0",
+        "serial_number": "7",
+        "pin": ""
+        },
+       "ddcs": {
+        "write-only": [ "org.homebus.experimental.thermostat" ],
+        "read-only": [ "org.homebus.experimental.air-sensor" ],
+        "read-write": [ ]
+    }
+  }
+
  */
 
 static void homebus_provision_request(char *buf, size_t buf_length) {
-  const size_t capacity = 4*JSON_ARRAY_SIZE(0) + JSON_ARRAY_SIZE(2) + JSON_ARRAY_SIZE(3) + JSON_ARRAY_SIZE(5) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(7) + 2*JSON_OBJECT_SIZE(9);
+  const size_t capacity = JSON_ARRAY_SIZE(1) + 2*JSON_ARRAY_SIZE(15) + JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4);
   StaticJsonDocument<capacity> doc;
 
   JsonObject provision = doc.createNestedObject("provision");
-  provision["friendly_name"] = _friendly_name;
-  provision["friendly_location"] = _friendly_location;
-  provision["manufacturer"] = _manufacturer;
-  provision["model"] = _model;
-  provision["serial_number"] = App.mac_address();
-  provision["pin"] = "";
 
-  JsonArray provision_devices = provision.createNestedArray("devices");
+  JsonObject provision_identity = provision.createNestedObject("identity");
+  provision_identity["manufacturer"] = _manufacturer;
+  provision_identity["model"] = _model;
+  provision_identity["serial_number"] = _serial_number;
+  provision_identity["pin"] = _pin;
 
-  JsonObject provision_devices_0 = provision_devices.createNestedObject();
-  provision_devices_0["friendly_name"] = "LED strip";
-  provision_devices_0["friendly_location"] = "";
-  provision_devices_0["update_frequency"] = 0;
-  provision_devices_0["index"] = 0;
-  provision_devices_0["accuracy"] = 0;
-  provision_devices_0["precision"] = 0;
-  JsonArray provision_devices_0_wo_topics = provision_devices_0.createNestedArray("wo_topics");
+  JsonObject provision_ddcs = provision.createNestedObject("ddcs");
 
-  JsonArray provision_devices_0_ro_topics = provision_devices_0.createNestedArray("ro_topics");
-  provision_devices_0_ro_topics.add("preset");
-  provision_devices_0_ro_topics.add("animation");
-  provision_devices_0_ro_topics.add("animation_speed");
-  provision_devices_0_ro_topics.add("brightness");
-  provision_devices_0_ro_topics.add("maximum_brightness");
-  JsonArray provision_devices_0_rw_topics = provision_devices_0.createNestedArray("rw_topics");
+  JsonArray provision_ddcs_write_only = provision_ddcs.createNestedArray("write-only");
 
-  JsonObject provision_devices_1 = provision_devices.createNestedObject();
-  provision_devices_1["friendly_name"] = "temperature";
-  provision_devices_1["friendly_location"] = "";
-  provision_devices_1["update_frequency"] = 60;
-  provision_devices_1["index"] = 0;
-  provision_devices_1["accuracy"] = 0;
-  provision_devices_1["precision"] = 0;
+  const char **ptr = _wo_ddcs;
+  while(1) {
+    if(*ptr == NULL)
+      break;
 
-  JsonArray provision_devices_1_wo_topics = provision_devices_1.createNestedArray("wo_topics");
-  provision_devices_1_wo_topics.add("temperature");
-  provision_devices_1_wo_topics.add("humidity");
-  provision_devices_1_wo_topics.add("pressure");
-  JsonArray provision_devices_1_ro_topics = provision_devices_1.createNestedArray("ro_topics");
-  JsonArray provision_devices_1_rw_topics = provision_devices_1.createNestedArray("rw_topics");
-  
+    Serial.printf("adding %s to WO ddcs\n", *ptr);
+    provision_ddcs_write_only.add(*ptr);
+    ptr++;
+  }
+
+  ptr = _ro_ddcs;
+  JsonArray provision_ddcs_read_only = provision_ddcs.createNestedArray("read-only");
+
+  while(1) {
+    if(*ptr == NULL)
+      break;
+
+    Serial.printf("adding %s to RO ddcs\n", *ptr);
+    provision_ddcs_read_only.add(*ptr);
+    ptr++;
+  }
+
   serializeJsonPretty(doc, buf, buf_length);
   Serial.println(strlen(buf));
   Serial.println(buf);
@@ -281,7 +295,7 @@ static void homebus_provision_request(char *buf, size_t buf_length) {
   Serial.println(buf);
 }
 
-void homebus_receive(const char* topic, char *msg, size_t length) {
+void homebus_receive(const char *topic, char *msg, size_t length) {
 }
 
 void homebus_system(JsonObject system) {
@@ -313,6 +327,7 @@ void homebus_system(JsonObject system) {
      }
 
 */
+#if 0
 static void homebus_process_discover(String payload) {
   const size_t capacity = JSON_OBJECT_SIZE(5) + 110;
   StaticJsonDocument<capacity> doc;
@@ -327,12 +342,11 @@ static void homebus_process_discover(String payload) {
   if(strcmp(doc["status"], "success") == 0)
      return;
 
-  const char* url = doc["url"]; // "http://some-long-name.homebus.io:80"
-  const char* server = doc["server"]; // "some-long-name.homebus.io"
+  const char *url = doc["url"]; // "http://some-long-name.homebus.io:80"
+  const char *server = doc["server"]; // "some-long-name.homebus.io"
   int port = doc["port"]; // 80
   bool secure = doc["secure"]; // false
 }
-
 
 static void homebus_discover() {
   HTTPClient http;
@@ -355,6 +369,7 @@ static void homebus_discover() {
 
   http.end();
 }
+#endif
 
 static void homebus_provision() {
   char buf[1024];
@@ -362,11 +377,17 @@ static void homebus_provision() {
 
   homebus_provision_request(buf, 1024);
 
-  http.begin("http://hipster.homebus.io/provision");
+  //  http.begin("http://hipster.homebus.io/provision");
   //  http.begin("http://ctrlh.homebus.io:5678/provision");
+
+  http.begin(String("http://") + _homebus_server + "/provision");
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Accept", "application/json");
-  
+  http.addHeader("Authorization", _homebus_auth_token.c_str());
+
+  Serial.print("token ");
+  Serial.println(_homebus_auth_token);
+
   int httpCode = http.POST(buf);
   if(httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
     String payload = http.getString();
@@ -382,46 +403,68 @@ static void homebus_provision() {
   http.end();
 }
 
+/* 
+ * response looks like:
+
+{
+          "status": "provisioned",
+          "credentials": {
+            "mqtt_username": "UUUUUUUU-WWWW-XXXX-YYYY-ZZZZZZZZZZZZ",
+            "mqtt_password": "UUUUUUUU-WWWW-XXXX-YYYY-ZZZZZZZZZZZZ"
+          },
+          "broker": {
+            "mqtt_hostname": "mqtt0.homebus.io",
+            "insecure_mqtt_port": 1883,
+            "secure_mqtt_port": 8883
+          },
+          "uuids": [ "UUUUUUUU-WWWW-XXXX-YYYY-ZZZZZZZZZZZZ" ],
+          "refresh_token": "111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
+}
+
+*/
 void homebus_process_response(String payload) {
-  const size_t capacity = JSON_ARRAY_SIZE(2) + 2*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(7) + 550;
+  const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 750;
   StaticJsonDocument<capacity> doc;
 
   Serial.print("homebus response ");
   Serial.println(payload);
 
-  deserializeJson(doc, payload);
+  Serial.print(payload.length());
+  Serial.println(" bytes long");
 
-  const char* UUID_c_str = doc["uuid"];
-  UUID = UUID_c_str;
+  deserializeJson(doc, payload);
 
   if(strcmp(doc["status"], "waiting") == 0) {
     Serial.println("HOMEBUS_STATE_PROVISION_WAIT");
 
+    refresh_token = String((const char *)doc["refresh_token"]);
+    Serial.print("refresh token ");
+    Serial.println(refresh_token);
+    delay(500);
+
     homebus_state = HOMEBUS_STATE_PROVISION_WAIT;
-    homebus_provision_retry_time = atoi(doc["retry_time"]);
+    homebus_provision_retry_time = doc["retry_time"];
     homebus_next_provision_retry = millis() + homebus_provision_retry_time*1000;
+
+    Serial.println("about to persist");
+    delay(500);
   }
 
   if(strcmp(doc["status"], "provisioned") == 0) {
-    const char* str;
-
     Serial.println("HOMEBUS_STATE_OKAY");
 
-    str = doc["mqtt_hostname"];
-    mqtt_broker = str;
+    refresh_token = String((const char *)doc["refresh_token"]);
 
-    Serial.println("RESP hostname ");
-    Serial.println(mqtt_broker);
+    mqtt_broker = String((const char *)doc["broker"]["mqtt_hostname"]);
+    mqtt_port = doc["broker"]["insecure_mqtt_port"];
 
-    str = doc["mqtt_username"];
-    mqtt_username = str;
+    mqtt_username = String((const char *)doc["credentials"]["mqtt_username"]);
+    mqtt_password = String((const char *)doc["credentials"]["mqtt_password"]);
 
-    Serial.print("RESP username ");
-    Serial.println(mqtt_username);
+    UUID = String((const char *)doc["uuids"][0]);
 
-    str = doc["mqtt_password"];
-    mqtt_password = str;
-    mqtt_port = doc["mqtt_port"];
+    Serial.printf("Homebus broker name %s, insecure port %u\n", mqtt_broker.c_str(), mqtt_port);
+    Serial.printf("Homebus credentials username %s, UUID %s\n", mqtt_username.c_str(), UUID.c_str());
 
     homebus_state = HOMEBUS_STATE_OKAY;
     homebus_mqtt_setup();
@@ -463,6 +506,6 @@ void homebus_publish_to(const char *ddc, const char *msg) {
   homebus_send_to(UUID.c_str(), ddc, msg);
 }
 
-void homebus_mqtt_callback(const char* topic, const char* msg) {
+void homebus_mqtt_callback(const char *topic, const char *msg) {
 
 }
