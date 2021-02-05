@@ -29,7 +29,7 @@ bool wifi_begin(const  wifi_credential_t* wifi_credentials, unsigned count, cons
   WiFi.setHostname(hostname);
 #endif
 
-
+  WiFi.persistent(false);
 
   for(unsigned i = 0; i < count; i++)
     wifiMulti.addAP(wifi_credentials[i].ssid, wifi_credentials[i].password);
