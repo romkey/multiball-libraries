@@ -27,7 +27,7 @@ void homebus_publish(const char *msg);
 void homebus_publish_to(const char *topic, const char *msg);
 void homebus_send_to(const char *uuid, const char *ddc, const char *msg);
 
-void homebus_callback(const char *topic, const char *msg);
+void homebus_mqtt_callback(const char *topic, const char *msg);
 
 void homebus_configure(const char *manufacturer, const char *model, const char *serial_number, const char *pin, const char *write_only_ddcs[], const char *read_only_ddcs[]);
 void homebus_set_provisioner(const char *server, const char *auth_token);
