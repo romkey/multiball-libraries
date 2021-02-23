@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include <vector>
 
 #include "multiball/app.h"
@@ -129,3 +131,5 @@ void mqtt_callback(const char* topic, const byte* payload, unsigned int length) 
 
   homebus_mqtt_callback((const char*)topic, (const char*)command_buffer);
 }
+
+#endif
