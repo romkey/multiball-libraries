@@ -24,15 +24,18 @@ void mqtt_connect();
 void mqtt_callback(const char* topic, const byte* payload, unsigned int length);
 
 static void onMqttConnect(bool sessionPresent) {
+#ifdef VERBOSE
     Serial.println("Connected to MQTT.");
     Serial.print("Session present: ");
     Serial.println(sessionPresent);
+#endif
 
     for(auto item = subscriptions.cbegin(); item != subscriptions.cend(); item++)
       mqtt_client.subscribe(*item, 0);
 }
 
 static void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
+#ifdef VERBOSE
   Serial.println("Disconnected from MQTT.");
 
   if(reason == AsyncMqttClientDisconnectReason::TLS_BAD_FINGERPRINT)
@@ -55,36 +58,24 @@ static void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
 
   if(reason == AsyncMqttClientDisconnectReason::ESP8266_NOT_ENOUGH_SPACE)
     Serial.println("not enough space");
+#endif
  
   if(WiFi.isConnected())
     mqtt_reconnect_timer.once(30, mqtt_connect);
 }
 
 void onMqttMessage(const char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+#ifdef VERBOSE
   Serial.printf("\n\nonMqttMessage(topic: %s, length: %u, index: %u, total: %u, payload: %.*s\n\n", topic, len, index, total, len, payload);
+#endif
 
   if(index != 0 || total != len) {
+#ifdef VERBOSE
     Serial.println("punting on incomplete msg");
+#endif
     return;
   }
 
-#if 0
-  Serial.print("  topic: ");
-  Serial.println(topic);
-  Serial.print("  qos: ");
-  Serial.println(properties.qos);
-  Serial.print("  dup: ");
-  Serial.println(properties.dup);
-  Serial.print("  retain: ");
-  Serial.println(properties.retain);
-  Serial.print("  len: ");
-  Serial.println(len);
-  Serial.print("  index: ");
-  Serial.println(index);
-  Serial.print("  total: ");
-  Serial.println(total);
-#endif
-  
   void mqtt_callback(const char*, char*, size_t);
   mqtt_callback(topic, payload, len);
 }
@@ -104,14 +95,18 @@ void mqtt_setup(String req_hostname, uint16_t req_port, String req_username, Str
   mqtt_client.setCredentials(username, password);
   mqtt_client.setServer(hostname, port);
   
+#ifdef VERBOSE
   Serial.println("MQTT connecting");
+#endif
   mqtt_connect();
 }
 
 void mqtt_subscribe(const char* topic) {
   char* subscription;
 
+#ifdef VERBOSE
   Serial.printf("mqtt_subscribe %s\n", topic);
+#endif
 
   subscription = strdup(topic);
   subscriptions.push_back(subscription);

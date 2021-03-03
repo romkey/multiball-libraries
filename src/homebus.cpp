@@ -561,9 +561,11 @@ void homebus_mqtt_callback(const char *topic, char *msg, size_t length) {
   filter["contents"]["ddc"] = true;
 
   DeserializationError error = deserializeJson(doc, (const char*)msg, DeserializationOption::Filter(filter));
+#ifdef VERBOSE
   Serial.printf("JSON capacity used %d\n", doc.memoryUsage());
+#endif
   if(error) {
-    Serial.print(F("homebus_mqtt_callback: deserializeJson() failed: "));
+    Serial.print("homebus_mqtt_callback: deserializeJson() failed: ");
     Serial.println(error.f_str());
     return;
   }
@@ -572,8 +574,10 @@ void homebus_mqtt_callback(const char *topic, char *msg, size_t length) {
   unsigned long timestamp = doc["timestamp"];
   const char* ddc = doc["contents"]["ddc"];
 
+#ifdef VERBOSE
   Serial.println("HOMEBUS");
   Serial.printf("\ngot msg %u bytes to topic %s: %.*s\n\n", length, topic, length, msg);
+#endif
 
   char *payload = isolate_homebus_payload(msg, length);
   if(payload == NULL) {
@@ -581,7 +585,9 @@ void homebus_mqtt_callback(const char *topic, char *msg, size_t length) {
     return;
   }
 
+#ifdef VERBOSE
   Serial.printf("\nhomebus_mqtt_callback: got source %s ddc %s timestamp %lu payload %s\n\n", source, ddc, timestamp, payload);
+#endif
 
   void homebus_callback(const char*, const char*, time_t, char*);
 
