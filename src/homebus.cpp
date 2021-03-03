@@ -97,7 +97,16 @@ void homebus_uuid(String new_uuid) {
 
 void homebus_mqtt_setup() {
   mqtt_setup(mqtt_broker, mqtt_port, mqtt_username, mqtt_password);
-  mqtt_subscribe((homebus_endpoint + "/cmd").c_str());
+
+  for(int i = 0; _ro_ddcs[i]; i++) {
+    char buf[sizeof("homebus/device/+/") + strlen(_ro_ddcs[i]) + 1];
+    strcpy(buf, "homebus/device/+/");
+    strcat(buf, _ro_ddcs[i]);
+
+    Serial.printf("Homebus sub to %s\n", buf);
+
+    mqtt_subscribe(buf);
+  }
 }
 
 void homebus_setup() {
@@ -506,6 +515,75 @@ void homebus_publish_to(const char *ddc, const char *msg) {
   homebus_send_to(UUID.c_str(), ddc, msg);
 }
 
-void homebus_mqtt_callback(const char *topic, const char *msg) {
+static char *find_payload_start(char *msg, size_t length) {
+  char *payload_start = strstr(msg, "payload\":");
 
+  if(payload_start == NULL)
+    return NULL;
+
+  payload_start = index(payload_start, '{');
+  if(payload_start == NULL)
+    return NULL;
+  
+  
+  return payload_start;
+}
+
+// this is really oversimplified. it assumes there are no sub-objects in the JSON.
+static char *find_payload_end(char *msg, size_t length) {
+  return index(msg, '}');
+}
+
+// this is a destructive operation that modifies msg
+static char *isolate_homebus_payload(char *msg, size_t length) {
+  char *payload_start = find_payload_start(msg, length);
+  char *payload_end;
+
+  if(payload_start == NULL)
+    return NULL;
+
+  payload_end = find_payload_end(payload_start, length - (payload_start - msg));
+  if(payload_end == NULL)
+    return NULL;
+
+  // here we mutate msg by truncating it at the end of the payload
+  payload_end[1] = '\0';
+
+  return payload_start;
+}
+
+void homebus_mqtt_callback(const char *topic, char *msg, size_t length) {
+  StaticJsonDocument<64> filter;
+  StaticJsonDocument<256> doc;
+
+  filter["source"] = true;
+  filter["timestamp"] = true;
+  filter["contents"]["ddc"] = true;
+
+  DeserializationError error = deserializeJson(doc, (const char*)msg, DeserializationOption::Filter(filter));
+  Serial.printf("JSON capacity used %d\n", doc.memoryUsage());
+  if(error) {
+    Serial.print(F("homebus_mqtt_callback: deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
+
+  const char* source = doc["source"]; // "548de014-0389-438c-9a60-0f92fe37b4d0"
+  unsigned long timestamp = doc["timestamp"];
+  const char* ddc = doc["contents"]["ddc"];
+
+  Serial.println("HOMEBUS");
+  Serial.printf("\ngot msg %u bytes to topic %s: %.*s\n\n", length, topic, length, msg);
+
+  char *payload = isolate_homebus_payload(msg, length);
+  if(payload == NULL) {
+    Serial.println("couldn't isolate Homebus payload");
+    return;
+  }
+
+  Serial.printf("\nhomebus_mqtt_callback: got source %s ddc %s timestamp %lu payload %s\n\n", source, ddc, timestamp, payload);
+
+  void homebus_callback(const char*, const char*, time_t, char*);
+
+  homebus_callback(source, ddc, timestamp, payload);
 }

@@ -123,10 +123,11 @@ String AppConfig::get(const char* key, boolean *success) {
     return String("");
   }
 
-  char buf[50];
+  #define MAX_LINE_LENGTH 80
+  char buf[MAX_LINE_LENGTH];
 
   *success = true;
-  String s = _read_line_from_file(file, buf, 50);
+  String s = _read_line_from_file(file, buf, MAX_LINE_LENGTH);
 
   Serial.printf("AppConfig::get(%s) -> %s\n", key, s.c_str());
   return s;

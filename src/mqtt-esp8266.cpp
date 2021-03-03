@@ -24,12 +24,12 @@ void mqtt_connect();
 void mqtt_callback(const char* topic, const byte* payload, unsigned int length);
 
 static void onMqttConnect(bool sessionPresent) {
-  Serial.println("Connected to MQTT.");
-  Serial.print("Session present: ");
-  Serial.println(sessionPresent);
+    Serial.println("Connected to MQTT.");
+    Serial.print("Session present: ");
+    Serial.println(sessionPresent);
 
-  for(auto item = subscriptions.cbegin(); item != subscriptions.cend(); item++)
-    mqtt_client.subscribe(*item, 0);
+    for(auto item = subscriptions.cbegin(); item != subscriptions.cend(); item++)
+      mqtt_client.subscribe(*item, 0);
 }
 
 static void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
@@ -60,8 +60,15 @@ static void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
     mqtt_reconnect_timer.once(30, mqtt_connect);
 }
 
-void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
-  Serial.println("Publish received.");
+void onMqttMessage(const char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+  Serial.printf("\n\nonMqttMessage(topic: %s, length: %u, index: %u, total: %u, payload: %.*s\n\n", topic, len, index, total, len, payload);
+
+  if(index != 0 || total != len) {
+    Serial.println("punting on incomplete msg");
+    return;
+  }
+
+#if 0
   Serial.print("  topic: ");
   Serial.println(topic);
   Serial.print("  qos: ");
@@ -76,6 +83,10 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
   Serial.println(index);
   Serial.print("  total: ");
   Serial.println(total);
+#endif
+  
+  void mqtt_callback(const char*, char*, size_t);
+  mqtt_callback(topic, payload, len);
 }
 
 void mqtt_setup(String req_hostname, uint16_t req_port, String req_username, String req_password) {
@@ -83,17 +94,13 @@ void mqtt_setup(String req_hostname, uint16_t req_port, String req_username, Str
   mqtt_client.onDisconnect(onMqttDisconnect);
   mqtt_client.onMessage(onMqttMessage);
 
-  hostname = (char*)malloc(req_hostname.length() + 1);
-  strcpy(hostname, req_hostname.c_str());
-
-  username = (char*)malloc(req_username.length() + 1);
-  strcpy(username, req_username.c_str());
-
-  password = (char*)malloc(req_password.length() + 1);
-  strcpy(password, req_password.c_str());
+  hostname = strdup(req_hostname.c_str());
+  username = strdup(req_username.c_str());
+  password = strdup(req_password.c_str());
 
   port = req_port;
 
+  mqtt_client.setClientId(username);
   mqtt_client.setCredentials(username, password);
   mqtt_client.setServer(hostname, port);
   
@@ -106,8 +113,7 @@ void mqtt_subscribe(const char* topic) {
 
   Serial.printf("mqtt_subscribe %s\n", topic);
 
-  subscription = (char*)malloc(strlen(topic) + 1);
-  strcpy(subscription, topic);
+  subscription = strdup(topic);
   subscriptions.push_back(subscription);
 
   if(mqtt_client.connected())
@@ -129,15 +135,15 @@ void mqtt_publish(const char* topic, const char* payload, bool retain) {
   mqtt_client.publish(topic, 0, retain, payload);
 }
 
-void homebus_mqtt_callback(const char*, char*);
+void homebus_mqtt_callback(const char*, char*, size_t);
 
-void mqtt_callback(const char* topic, const byte* payload, unsigned int length) {
+void mqtt_callback(const char* topic, char* payload, size_t length) {
   char command_buffer[length + 1];
 
   memcpy(command_buffer, payload, length);
   command_buffer[length] = '\0';
 
-  homebus_mqtt_callback(topic, command_buffer);
+  homebus_mqtt_callback(topic, command_buffer, length);
 }
 
 #endif // ESP8266
