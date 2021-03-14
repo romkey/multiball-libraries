@@ -18,7 +18,7 @@ void setup() {
   Serial.println("[app]");
 
   Serial.println("[homebus]");
-  homebus_configure("Furball", "CTRLH Electronics Lab", "Homebus", "v4");
+  homebus_configure("Furball", "CTRLH Electronics Lab", "Homebus", "v4", (const char**) "org.homebus.experimental.thermostat", (const char**) "org.homebus.experimental.air-sensor" );
   homebus_setup();
 
 }
