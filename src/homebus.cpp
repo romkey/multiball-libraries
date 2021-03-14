@@ -589,7 +589,4 @@ void homebus_mqtt_callback(const char *topic, char *msg, size_t length) {
   Serial.printf("\nhomebus_mqtt_callback: got source %s ddc %s timestamp %lu payload %s\n\n", source, ddc, timestamp, payload);
 #endif
 
-  void homebus_callback(const char*, const char*, time_t, char*);
-
-  homebus_callback(source, ddc, timestamp, payload);
 }
