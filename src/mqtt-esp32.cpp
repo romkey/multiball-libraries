@@ -121,15 +121,13 @@ void mqtt_publish(const char* topic, const char* payload, bool retain) {
   esp_mqtt_client_publish(client, topic, payload, strlen(payload), 0, 1);
 }
 
-void homebus_mqtt_callback(const char*, char*);
-
 void mqtt_callback(const char* topic, const byte* payload, unsigned int length) {
   char command_buffer[length + 1];
 
   memcpy(command_buffer, payload, length);
   command_buffer[length] = '\0';
 
-  homebus_mqtt_callback((const char*)topic, (const char*)command_buffer);
+  homebus_mqtt_callback((const char*)topic, (char*)command_buffer, length);
 }
 
 #endif
