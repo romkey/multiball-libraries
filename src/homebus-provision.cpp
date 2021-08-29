@@ -305,8 +305,8 @@ void homebus_process_response(String payload, int status) {
   homebus_persist();
 }
 
-boolean homebus_validate_provision_request_response(StaticJsonDocument<1024> doc) {
-  if(!doc.containsNestedObject("provision_request")) {
+boolean homebus_validate_provision_request_response(StaticJsonDocument<2048> doc) {
+  if(!doc.containsKey("provision_request")) {
     Serial.println("no provision_request!");
     return false;
   }
@@ -326,7 +326,7 @@ boolean homebus_validate_provision_request_response(StaticJsonDocument<1024> doc
     return true;
   }
 
-  if(!doc.containsNestedObject("credentials")) {
+  if(!doc.containsKey("credentials")) {
     Serial.println("credentials");
     return false;
   }
@@ -356,7 +356,7 @@ boolean homebus_validate_provision_request_response(StaticJsonDocument<1024> doc
     return false;
   }
 
-  if(!doc.containsNestedObject("broker")) {
+  if(!doc.containsKey("broker")) {
     Serial.println("no broker");
     return false;
   }
