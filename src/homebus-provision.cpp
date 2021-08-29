@@ -326,21 +326,6 @@ boolean homebus_validate_provision_request_response(StaticJsonDocument<1024> doc
     return true;
   }
 
-  if(!doc.containsKey("broker")) {
-    Serial.println("no broker");
-    return false;
-  }
-
-  if(!doc["broker"].containsKey("mqtt_hostname")) {
-    Serial.println("no broker hostname");
-    return false;
-  }
-
-  if(!doc["broker"].containsKey("insecure_mqtt_port")) {
-    Serial.println("no broker port");
-    return false;
-  }
-
   if(!doc.containsKey("credentials")) {
     Serial.println("credentials");
     return false;
@@ -368,6 +353,21 @@ boolean homebus_validate_provision_request_response(StaticJsonDocument<1024> doc
 
   if(!doc["devices"][0].containsKey("id")) {
     Serial.println("device ID");
+    return false;
+  }
+
+  if(!doc.containsKey("broker")) {
+    Serial.println("no broker");
+    return false;
+  }
+
+  if(!doc["broker"].containsKey("mqtt_hostname")) {
+    Serial.println("no broker hostname");
+    return false;
+  }
+
+  if(!doc["broker"].containsKey("insecure_mqtt_port")) {
+    Serial.println("no broker port");
     return false;
   }
 
