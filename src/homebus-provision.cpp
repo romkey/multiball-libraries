@@ -249,7 +249,7 @@ void homebus_process_response(String payload, int status) {
     return;
   }
 
-  boolean homebus_validate_provision_request_response(StaticJsonDocument<1024> doc);
+  boolean homebus_validate_provision_request_response(StaticJsonDocument<2048> doc);
 
   if(!homebus_validate_provision_request_response(doc)) {
     Serial.println("invalid provision_request response");
