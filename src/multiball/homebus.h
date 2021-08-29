@@ -5,11 +5,12 @@
 typedef enum {
   HOMEBUS_STATE_NOT_SETUP = 0,           // not yet initialized
   HOMEBUS_STATE_FINDING_PROVISIONER = 1, // attempting to locate provisioner
-  HOMEBUS_STATE_PROVISIONING = 2,        // attempting to contact provisioner
+  HOMEBUS_STATE_PROVISION_START = 2,        // attempting to contact provisioner
   HOMEBUS_STATE_PROVISION_WAIT = 3,      // waiting for provisioning response
-  HOMEBUS_STATE_UPDATE_PASSWORD = 4,     // getting a new password from provisioner
+  HOMEBUS_STATE_UPDATE_CREDENTIALS = 4,  // getting a new password from provisioner
   HOMEBUS_STATE_REJECTED = 5,            // provisioner rejected request
-  HOMEBUS_STATE_OKAY = 6                 // up and running
+  HOMEBUS_STATE_UNKNOWN = 6,             // unknown response
+  HOMEBUS_STATE_SUCCESS = 7              // up and running
 } homebus_state_t;
 
 void homebus_setup();
