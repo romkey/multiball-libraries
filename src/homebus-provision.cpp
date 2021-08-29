@@ -236,7 +236,7 @@ static void homebus_provision_wait() {
 
 */
 void homebus_process_response(String payload, int status) {
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<1536> doc;
 
   Serial.println("HOMEBUS PROCESS RESPONSE");
   Serial.println(payload);
