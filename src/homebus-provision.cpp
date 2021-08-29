@@ -306,38 +306,70 @@ void homebus_process_response(String payload, int status) {
 }
 
 boolean homebus_validate_provision_request_response(StaticJsonDocument<1024> doc) {
-  if(!doc.containsKey("provision_request"))
+  if(!doc.containsKey("provision_request")) {
+    Serial.println("no provision_request!");
     return false;
+  }
 
-  if(!doc["provision_request"].containsKey("id"))
+  if(!doc["provision_request"].containsKey("id")) {
+    Serial.println("no provision_request id");
     return false;
+  }
 
-  if(!doc["provision_request"].containsKey("token"))
+  if(!doc["provision_request"].containsKey("token")) {
+    Serial.println("no provision_request token");
     return false;
+  }
 
-  if(doc.containsKey("retry_interval"))
+  if(doc.containsKey("retry_interval")) {
+    Serial.println("found retry_interval");
     return true;
+  }
 
-  if(!doc.containsKey("broker"))
+  if(!doc.containsKey("broker")) {
+    Serial.println("no broker");
     return false;
+  }
 
-  if(!doc["broker"].containsKey("mqtt_hostname") || !doc["broker"].containsKey("insecure_mqtt_port"))
+  if(!doc["broker"].containsKey("mqtt_hostname")) {
+    Serial.println("no broker hostname");
     return false;
+  }
 
-  if(!doc.containsKey("credentials"))
+  if(!doc["broker"].containsKey("insecure_mqtt_port")) {
+    Serial.println("no broker port");
     return false;
+  }
 
-  if(!doc["credentials"].containsKey("mqtt_username") || !doc["credentials"].containsKey("mqtt_password"))
+  if(!doc.containsKey("credentials")) {
+    Serial.println("credentials");
     return false;
+  }
 
-  if(!doc.containsKey("devices"))
+  if(!doc["credentials"].containsKey("mqtt_username")) {
+    Serial.println("credentials username");
     return false;
+  }
 
-  if(!doc["devices"][0])
+  if(!doc["credentials"].containsKey("mqtt_password")) {
+    Serial.println("credentials password");
     return false;
+  }
 
-  if(!doc["devices"][0].containsKey("id"))
+  if(!doc.containsKey("devices")) {
+    Serial.println("devices");
     return false;
+  }
+
+  if(!doc["devices"][0]) {
+    Serial.println("first device");
+    return false;
+  }
+
+  if(!doc["devices"][0].containsKey("id")) {
+    Serial.println("device ID");
+    return false;
+  }
 
   return true;
 }
