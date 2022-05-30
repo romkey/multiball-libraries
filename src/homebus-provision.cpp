@@ -37,7 +37,7 @@ void homebus_setup() {
 }
 
 void homebus_handle() {
-  if(homebus_state == HOMEBUS_STATE_PROVISION_WAIT) {
+  if(homebus_state() == HOMEBUS_STATE_PROVISION_WAIT) {
     if(homebus_next_provision_retry < millis()) {
       Serial.println("homebus provision retrying...");
       homebus_next_provision_retry = millis() + homebus_provision_retry_interval*1000;
@@ -45,17 +45,17 @@ void homebus_handle() {
     }
   }
 
-  if(homebus_state == HOMEBUS_STATE_SUCCESS && !mqtt_is_connected()) {
+  if(homebus_state() == HOMEBUS_STATE_SUCCESS && !mqtt_is_connected()) {
     homebus_mqtt_setup();
     mqtt_connect();
   }
 }
 
 static void homebus_provision() {
-  switch(homebus_state) {
+  switch(homebus_state()) {
   case HOMEBUS_STATE_NOT_SETUP:
     if(_homebus_server != "" && initial_auth_token != "")
-      homebus_state = HOMEBUS_STATE_PROVISION_START;
+      homebus_state(HOMEBUS_STATE_PROVISION_START);
     else
       break;
   case HOMEBUS_STATE_PROVISION_START:
@@ -269,7 +269,7 @@ void homebus_process_response(String payload, int status) {
     Serial.println(pr_token);
     delay(500);
 
-    homebus_state = HOMEBUS_STATE_PROVISION_WAIT;
+    homebus_state(HOMEBUS_STATE_PROVISION_WAIT);
     homebus_provision_retry_interval = doc["retry_interval"];
     homebus_next_provision_retry = millis() + homebus_provision_retry_interval*1000;
 
@@ -301,7 +301,7 @@ void homebus_process_response(String payload, int status) {
   Serial.printf("Homebus broker name %s, insecure port %u\n", mqtt_broker.c_str(), mqtt_port);
   Serial.printf("Homebus credentials username %s, pr id %s, device id %s\n", mqtt_username.c_str(), pr_id.c_str(), device_id.c_str());
 
-  homebus_state = HOMEBUS_STATE_SUCCESS;
+  homebus_state(HOMEBUS_STATE_SUCCESS);
   homebus_persist();
 }
 

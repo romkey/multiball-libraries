@@ -80,7 +80,7 @@ void homebus_stuff(const char *broker, uint16_t port, const char *username, cons
   mqtt_username = String(username);
   mqtt_password = String(password);
   device_id = String(uuid);
-  homebus_state = HOMEBUS_STATE_SUCCESS;
+  homebus_state(HOMEBUS_STATE_SUCCESS);
 
   Serial.println("about to persist STUFF");
   delay(500);
@@ -88,7 +88,7 @@ void homebus_stuff(const char *broker, uint16_t port, const char *username, cons
 }
 
 void homebus_publish(const char *msg) {
-  if(homebus_state == HOMEBUS_STATE_SUCCESS)
+  if(homebus_state() == HOMEBUS_STATE_SUCCESS)
     mqtt_publish(homebus_endpoint.c_str(), msg, true);
 }
 
@@ -103,8 +103,7 @@ void homebus_send_to(const char *uuid, const char *ddc, const char *msg) {
   char buf[buf_len];
   char topic[topic_len];
 
-  if(homebus_state == HOMEBUS_STATE_SUCCESS) {
-    
+  if(homebus_state() == HOMEBUS_STATE_SUCCESS) {
     snprintf(topic, topic_len, "homebus/device/%s/%s", uuid, ddc);
     if(use_envelope) {
       snprintf(buf, buf_len, HOMEBUS_ENVELOPE, device_id.c_str(), time(NULL), ddc, msg);

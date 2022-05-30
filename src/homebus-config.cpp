@@ -16,12 +16,13 @@
 // this is awful, and temporary
 // it was expedient to do this in breaking up the homebus code into multiple files
 // this needs to be cleaned up and properly abstracted
-homebus_state_t homebus_state = HOMEBUS_STATE_NOT_SETUP;
+static homebus_state_t _homebus_state = HOMEBUS_STATE_NOT_SETUP;
 
 String homebus_endpoint;
 String homebus_cmd_endpoint;
 
 String device_id;
+String device_token;
 String initial_auth_token;
 String pr_token;
 String pr_id;
@@ -41,10 +42,18 @@ const char **_publishes = { NULL }, **_consumes = { NULL };
 
 String _homebus_server, _homebus_auth_token;
 
+homebus_state_t homebus_state() {
+  return _homebus_state;
+}
+
+void homebus_state(homebus_state_t state) {
+  _homebus_state = state;
+}
+
 void homebus_persist() {
   Serial.println("homebus_persist()");
 
-  App.config.set("hb-state", String(homebus_state));
+  App.config.set("hb-state", String(_homebus_state));
   App.config.set("hb-auth-token", initial_auth_token.c_str());
   App.config.set("hb-pr-id", pr_id.c_str());
   App.config.set("hb-pr-token", pr_token.c_str());
@@ -63,6 +72,7 @@ void homebus_reset() {
   App.config.clear("hb-pr-id");
   App.config.clear("hb-pr-token");
   App.config.clear("hb-device-id");
+  App.config.clear("hb-device-token");
   App.config.clear("hb-broker");
   App.config.clear("hb-username");
   App.config.clear("hb-password");
@@ -71,14 +81,16 @@ void homebus_reset() {
 
 
 void homebus_restore() {
-  Serial.println("homebus_restore()");
-
   boolean success;
   String temp;
 
+  Serial.println("homebus_restore()");
+
+#define HB_RESTORE_GET(KEY, VAR)   temp = App.config.get(KEY, &success); if(success) { VAR = temp; } else { Serial.println("homebus_restore: KEY missing"); }
+
   temp = App.config.get("hb-state", &success);
   if(success)
-    homebus_state = static_cast<homebus_state_t>(temp.toInt());
+    _homebus_state = static_cast<homebus_state_t>(temp.toInt());
 
   temp = App.config.get("hb-auth-token", &success);
   if(success)
@@ -86,6 +98,12 @@ void homebus_restore() {
   else
     Serial.println("Initial auth token fail");
 
+  HB_RESTORE_GET("hb-pr-id", pr_id)
+  HB_RESTORE_GET("hb-device-id", device_id)
+  HB_RESTORE_GET("hb-device-token", device_token)
+  HB_RESTORE_GET("hb-pr-token", pr_token)
+
+  /*
   temp = App.config.get("hb-pr-id", &success);
   if(success)
     pr_id = temp;
@@ -98,11 +116,18 @@ void homebus_restore() {
   else
     Serial.println("Device ID fail");
 
+  temp = App.config.get("hb-device-token", &success);
+  if(success)
+   device_token = temp;
+  else
+    Serial.println("Device ID fail");
+
   temp = App.config.get("hb-pr-token", &success);
   if(success)
     pr_token = temp;
   else
     Serial.println("PR token fail");
+*/
 
   temp = App.config.get("hb-broker", &success);
   if(success)
@@ -129,7 +154,7 @@ void homebus_restore() {
     Serial.println("port fail");
 
   Serial.printf("homebus restore state %d broker %s port %u user %s pass %s pr_uuid %s pr_token %s device_id %s\n",
-		static_cast<int>(homebus_state),
+		static_cast<int>(_homebus_state),
 		mqtt_broker.c_str(),
 		mqtt_port,
 		mqtt_username.c_str(),
@@ -141,14 +166,14 @@ void homebus_restore() {
 
 
 // friendly name, friendly location, manufacturer, model, update_frequency
-void homebus_configure(const char *manufacturer, const char *model, const char *serial_number, const char *pin, const char *write_only_ddcs[], const char *read_only_ddcs[]) {
+void homebus_configure(const char *manufacturer, const char *model, const char *serial_number, const char *pin, const char *publishes[], const char *consumes[]) {
   _manufacturer = manufacturer;
   _model = model;
   _serial_number = serial_number;
   _pin = pin;
 
-  _publishes = write_only_ddcs;
-  _consumes = read_only_ddcs;
+  _publishes = publishes;
+  _consumes = consumes;
 }
 
 void homebus_set_provisioner(const char *server, const char *auth_token) {

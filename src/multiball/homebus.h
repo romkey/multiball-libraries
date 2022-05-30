@@ -15,6 +15,7 @@ typedef enum {
 
 void homebus_setup();
 void homebus_handle();
+homebus_state_t homebus_state();
 
 void homebus_persist();
 void homebus_restore();
@@ -38,6 +39,9 @@ const char *homebus_uuid();
 const char *homebus_mqtt_host();
 const char *homebus_mqtt_username();
 uint16_t homebus_mqtt_port();
+
+homebus_state_t homebus_state();
+void homebus_state(homebus_state_t);
 
 /*
  * temporary function for transition to new libraries

@@ -1,7 +1,5 @@
 #pragma once
 
-extern homebus_state_t homebus_state;
-
 extern String homebus_endpoint;
 extern String homebus_cmd_endpoint;
 

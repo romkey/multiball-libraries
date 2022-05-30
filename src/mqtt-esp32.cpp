@@ -76,6 +76,33 @@ static int mqtt_event_handler(esp_mqtt_event_t *e) {
 
   case MQTT_EVENT_ERROR:
     Serial.println("MQTT error");
+
+    // https://github.com/espressif/esp-mqtt/blob/master/include/mqtt_client.h
+    switch(e->error_handle->error_type) {
+    case MQTT_ERROR_TYPE_CONNECTION_REFUSED:
+      Serial.println("connection refused");
+      break;
+    case MQTT_ERROR_TYPE_TCP_TRANSPORT:
+      Serial.println("TCP transport");
+      break;
+    default:
+      switch(e->error_handle->connect_return_code) {
+      case MQTT_CONNECTION_REFUSE_PROTOCOL:
+	Serial.println("wrong protocol");
+	break;
+      case  MQTT_CONNECTION_REFUSE_ID_REJECTED:
+	Serial.println("client ID rejected");
+	break;
+      case MQTT_CONNECTION_REFUSE_SERVER_UNAVAILABLE:
+	Serial.println("server unavailable");
+	break;
+      case MQTT_CONNECTION_REFUSE_BAD_USERNAME:
+	Serial.println("bad username");
+	break;
+      case MQTT_CONNECTION_REFUSE_NOT_AUTHORIZED:
+	Serial.println("not authorized");
+      }
+    }
     break;
   case MQTT_EVENT_SUBSCRIBED:
     Serial.println("MQTT subscribed");
