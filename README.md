@@ -1,7 +1,5 @@
 # Multiball Library
 
-[![Build Status](https://travis-ci.com/romkey/multiball-libraries.svg?branch=master)](https://travis-ci.com/romkey/multiball-libraries)
-
 This library contains code that's used in several hardware projects:
 - the [furball](https://github.com/HomeBusProjects/furball) environmental sensor, dustball (merged into furball)
 - [butterball](https://github.com/romkey/butterball) high temperature sensor
